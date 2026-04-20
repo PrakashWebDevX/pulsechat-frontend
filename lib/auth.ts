@@ -8,7 +8,6 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-
   callbacks: {
     async signIn({ user }) {
       try {
@@ -17,11 +16,7 @@ export const authOptions: NextAuthOptions = {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: user.name,
-              email: user.email,
-              image: user.image,
-            }),
+            body: JSON.stringify({ name: user.name, email: user.email, image: user.image }),
           }
         );
         if (!res.ok) return false;
@@ -32,25 +27,15 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
     },
-
     async jwt({ token, user }) {
-      if (user) {
-        token.dbId = (user as any).dbId;
-      }
+      if (user) token.dbId = (user as any).dbId;
       return token;
     },
-
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).id = token.dbId as string;
-      }
+      if (session.user) (session.user as any).id = token.dbId as string;
       return session;
     },
   },
-
-  pages: {
-    signIn: "/login",
-  },
-
+  pages: { signIn: "/login" },
   secret: process.env.NEXTAUTH_SECRET,
 };
