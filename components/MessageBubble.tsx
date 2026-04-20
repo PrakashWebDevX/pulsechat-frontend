@@ -16,20 +16,25 @@ interface Props {
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  try {
+    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "";
+  }
 }
 
 function formatFileSize(bytes: number) {
+  if (!bytes) return "";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-// Group reactions by emoji
 function groupReactions(reactions: Message["reactions"]) {
+  if (!Array.isArray(reactions)) return [];
   const map: Record<string, number> = {};
   for (const r of reactions) {
-    map[r.emoji] = (map[r.emoji] || 0) + 1;
+    if (r?.emoji) map[r.emoji] = (map[r.emoji] || 0) + 1;
   }
   return Object.entries(map);
 }
@@ -38,6 +43,9 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
   const [showActions, setShowActions] = useState(false);
   const [showQuickReact, setShowQuickReact] = useState(false);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Guard against malformed message
+  if (!msg || !msg._id) return null;
 
   const handleMouseEnter = () => {
     hoverTimeout.current = setTimeout(() => setShowActions(true), 200);
@@ -48,27 +56,30 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
     setShowQuickReact(false);
   };
 
-  const myReaction = msg.reactions.find((r) => r.userId === myId)?.emoji;
-  const grouped = groupReactions(msg.reactions);
+  // Mobile: long press to show actions
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleTouchStart = () => {
+    longPressTimer.current = setTimeout(() => setShowActions(true), 500);
+  };
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+  };
 
-  // Read receipt icon
+  const reactions = Array.isArray(msg.reactions) ? msg.reactions : [];
+  const myReaction = reactions.find((r) => r?.userId === myId)?.emoji;
+  const grouped = groupReactions(reactions);
+
   const ReadIcon = () => {
     if (!isMine) return null;
-    if (msg.status === "read") {
-      return (
-        <span className="text-[10px] text-blue-400" title="Read">✓✓</span>
-      );
-    }
-    if (msg.status === "delivered") {
-      return <span className="text-[10px] text-gray-400" title="Delivered">✓✓</span>;
-    }
-    return <span className="text-[10px] text-gray-600" title="Sent">✓</span>;
+    if (msg.status === "read") return <span className="text-[10px] text-blue-400">✓✓</span>;
+    if (msg.status === "delivered") return <span className="text-[10px] text-gray-400">✓✓</span>;
+    return <span className="text-[10px] text-gray-600">✓</span>;
   };
 
   if (msg.deleted) {
     return (
       <div className={`flex ${isMine ? "justify-end" : "justify-start"} ${isGrouped ? "mt-0.5" : "mt-3"}`}>
-        <div className="px-4 py-2 rounded-2xl border border-surface-border text-gray-600 text-sm italic">
+        <div className="px-4 py-2 rounded-2xl border border-surface-border text-gray-600 text-sm italic max-w-[80%]">
           🚫 This message was deleted
         </div>
       </div>
@@ -77,14 +88,16 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
 
   return (
     <div
-      className={`flex ${isMine ? "justify-end" : "justify-start"} ${isGrouped ? "mt-0.5" : "mt-3"} group relative`}
+      className={`flex ${isMine ? "justify-end" : "justify-start"} ${isGrouped ? "mt-0.5" : "mt-3"} relative`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
-      <div className="relative max-w-[70%]">
+      <div className="relative max-w-[80%] md:max-w-[70%]">
         {/* Reply preview */}
         {msg.replyTo && (
-          <div className={`mb-1 px-3 py-1.5 rounded-lg border-l-2 border-brand-500 bg-surface-raised text-xs text-gray-400 truncate ${isMine ? "ml-auto" : ""}`}>
+          <div className={`mb-1 px-3 py-1.5 rounded-lg border-l-2 border-brand-500 bg-surface-raised text-xs text-gray-400 ${isMine ? "ml-auto" : ""}`}>
             <span className="text-brand-500 font-medium">
               {msg.replyTo.senderId === myId ? "You" : "Them"}
             </span>
@@ -93,9 +106,8 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
         )}
 
         {/* Bubble */}
-        <div
-          className={`px-4 py-2.5 text-sm leading-relaxed break-words
-            ${isMine ? "bg-brand-600 text-white bubble-sent" : "bg-surface-raised text-gray-100 bubble-recv"}`}
+        <div className={`px-4 py-2.5 text-sm leading-relaxed break-words
+          ${isMine ? "bg-brand-600 text-white bubble-sent" : "bg-surface-raised text-gray-100 bubble-recv"}`}
         >
           {/* Image */}
           {msg.type === "image" && msg.fileUrl && (
@@ -103,25 +115,23 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={msg.fileUrl}
-                alt="sent image"
+                alt="sent"
                 className="max-w-full rounded-lg cursor-pointer"
-                style={{ maxHeight: 240 }}
-                onClick={() => window.open(msg.fileUrl, "_blank")}
+                style={{ maxHeight: 200 }}
+                onClick={() => { try { window.open(msg.fileUrl, "_blank"); } catch {} }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
             </div>
           )}
 
           {/* File */}
           {msg.type === "file" && msg.fileUrl && (
-            <a
-              href={msg.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer"
               className={`flex items-center gap-2 p-2 rounded-lg mb-1 ${isMine ? "bg-brand-700/40" : "bg-surface-border"}`}
             >
               <span className="text-2xl">📎</span>
               <div className="min-w-0">
-                <p className="text-xs font-medium truncate">{msg.fileName}</p>
+                <p className="text-xs font-medium truncate">{msg.fileName || "File"}</p>
                 <p className="text-xs opacity-60">{formatFileSize(msg.fileSize || 0)}</p>
               </div>
             </a>
@@ -142,17 +152,15 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
           </div>
         </div>
 
-        {/* Reactions display */}
+        {/* Reactions */}
         {grouped.length > 0 && (
           <div className={`flex flex-wrap gap-1 mt-1 ${isMine ? "justify-end" : "justify-start"}`}>
             {grouped.map(([emoji, count]) => (
-              <button
-                key={emoji}
-                onClick={() => onReact(msg._id, emoji)}
+              <button key={emoji} onClick={() => onReact(msg._id, emoji)}
                 className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all
                   ${myReaction === emoji
                     ? "bg-brand-500/20 border-brand-500/50 text-brand-500"
-                    : "bg-surface-raised border-surface-border text-gray-300 hover:border-brand-500/30"
+                    : "bg-surface-raised border-surface-border text-gray-300"
                   }`}
               >
                 {emoji} {count > 1 && <span>{count}</span>}
@@ -161,18 +169,16 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
           </div>
         )}
 
-        {/* Hover action bar */}
+        {/* Action bar */}
         {showActions && (
-          <div
-            className={`absolute top-0 ${isMine ? "right-full mr-2" : "left-full ml-2"} 
-              flex items-center gap-1 bg-surface-card border border-surface-border 
-              rounded-xl px-2 py-1.5 shadow-xl z-10 animate-fade-in`}
+          <div className={`absolute top-0 ${isMine ? "right-full mr-2" : "left-full ml-2"}
+            flex items-center gap-1 bg-surface-card border border-surface-border
+            rounded-xl px-2 py-1.5 shadow-xl z-10 animate-fade-in`}
           >
             {/* Quick react */}
             <div className="relative">
-              <button
-                onClick={() => setShowQuickReact(!showQuickReact)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface-raised transition-colors text-gray-400 hover:text-white"
+              <button onClick={() => setShowQuickReact(!showQuickReact)}
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface-raised transition-colors"
                 title="React"
               >
                 😊
@@ -180,8 +186,7 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
               {showQuickReact && (
                 <div className="absolute bottom-9 left-0 flex gap-1 bg-surface-card border border-surface-border rounded-xl px-2 py-1.5 shadow-xl z-20 animate-fade-in">
                   {QUICK_REACTIONS.map((emoji) => (
-                    <button
-                      key={emoji}
+                    <button key={emoji}
                       onClick={() => { onReact(msg._id, emoji); setShowQuickReact(false); setShowActions(false); }}
                       className="w-7 h-7 flex items-center justify-center text-lg hover:bg-surface-raised rounded-lg transition-all hover:scale-125"
                     >
@@ -193,8 +198,7 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
             </div>
 
             {/* Reply */}
-            <button
-              onClick={() => { onReply(msg); setShowActions(false); }}
+            <button onClick={() => { onReply(msg); setShowActions(false); }}
               className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface-raised transition-colors text-gray-400 hover:text-white"
               title="Reply"
             >
@@ -203,10 +207,9 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
               </svg>
             </button>
 
-            {/* Edit (only mine, only text) */}
+            {/* Edit */}
             {isMine && msg.type === "text" && (
-              <button
-                onClick={() => { onEdit(msg); setShowActions(false); }}
+              <button onClick={() => { onEdit(msg); setShowActions(false); }}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-surface-raised transition-colors text-gray-400 hover:text-white"
                 title="Edit"
               >
@@ -216,10 +219,9 @@ export default function MessageBubble({ msg, isMine, isGrouped, myId, onReact, o
               </button>
             )}
 
-            {/* Delete (only mine) */}
+            {/* Delete */}
             {isMine && (
-              <button
-                onClick={() => { onDelete(msg._id); setShowActions(false); }}
+              <button onClick={() => { onDelete(msg._id); setShowActions(false); }}
                 className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-500/20 transition-colors text-gray-400 hover:text-red-400"
                 title="Delete"
               >

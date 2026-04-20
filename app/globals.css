@@ -2,20 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Mobile viewport fix (prevents white gap when keyboard opens) ─────── */
+html, body {
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+/* Fix height on iOS Safari */
+.h-screen {
+  height: 100vh;
+  height: -webkit-fill-available;
+}
+
+/* Safe area for iPhone notch/home bar */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* ── Custom scrollbar ────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #2a3040;
-  border-radius: 99px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3a4255;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3040; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4255; }
 
 /* ── Typing indicator dots ───────────────────────────────────────────────── */
 .typing-dot {
@@ -26,22 +34,32 @@
   display: inline-block;
   animation: typingBounce 1.2s infinite;
 }
-.typing-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-.typing-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes typingBounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
   30%            { transform: translateY(-6px); opacity: 1; }
 }
 
-/* ── Message bubble tail ─────────────────────────────────────────────────── */
-.bubble-sent {
-  border-radius: 18px 18px 4px 18px;
+/* ── Message bubble tails ─────────────────────────────────────────────── */
+.bubble-sent { border-radius: 18px 18px 4px 18px; }
+.bubble-recv { border-radius: 18px 18px 18px 4px; }
+
+/* ── Animations ──────────────────────────────────────────────────────────── */
+@keyframes fadeIn   { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp  { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+
+.animate-fade-in  { animation: fadeIn 0.2s ease-out; }
+.animate-slide-up { animation: slideUp 0.3s ease-out; }
+
+/* ── Prevent text selection on long press (mobile) ───────────────────── */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
 }
-.bubble-recv {
-  border-radius: 18px 18px 18px 4px;
+
+/* ── Mobile tap highlight removal ────────────────────────────────────── */
+button, a {
+  -webkit-tap-highlight-color: transparent;
 }
