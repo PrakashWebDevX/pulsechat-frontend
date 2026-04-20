@@ -2,64 +2,111 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Mobile viewport fix (prevents white gap when keyboard opens) ─────── */
-html, body {
-  height: 100%;
-  height: -webkit-fill-available;
+/* ── Dark theme (default) ─────────────────────────────────────────────── */
+:root, [data-theme="dark"] {
+  --bg-surface:        #0f1117;
+  --bg-card:           #171b24;
+  --bg-raised:         #1e2330;
+  --bg-border:         #2a3040;
+  --text-primary:      #ffffff;
+  --text-secondary:    #9ca3af;
+  --text-muted:        #4b5563;
+  --brand:             #22c55e;
+  --brand-dark:        #16a34a;
+  --bubble-mine:       #16a34a;
+  --bubble-mine-text:  #ffffff;
+  --bubble-theirs:     #1e2330;
+  --bubble-theirs-text:#f3f4f6;
 }
 
-/* Fix height on iOS Safari */
-.h-screen {
-  height: 100vh;
-  height: -webkit-fill-available;
+/* ── Light theme ──────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-surface:        #f0f2f5;
+  --bg-card:           #ffffff;
+  --bg-raised:         #f7f8fa;
+  --bg-border:         #e5e7eb;
+  --text-primary:      #111827;
+  --text-secondary:    #6b7280;
+  --text-muted:        #9ca3af;
+  --brand:             #16a34a;
+  --brand-dark:        #15803d;
+  --bubble-mine:       #22c55e;
+  --bubble-mine-text:  #ffffff;
+  --bubble-theirs:     #ffffff;
+  --bubble-theirs-text:#111827;
 }
 
-/* Safe area for iPhone notch/home bar */
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+/* ── Apply CSS variables ──────────────────────────────────────────────── */
+body {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ── Custom scrollbar ────────────────────────────────────────────────────── */
+.bg-surface       { background-color: var(--bg-surface) !important; }
+.bg-surface-card  { background-color: var(--bg-card) !important; }
+.bg-surface-raised{ background-color: var(--bg-raised) !important; }
+.border-surface-border { border-color: var(--bg-border) !important; }
+.text-white       { color: var(--text-primary) !important; }
+.text-gray-400    { color: var(--text-secondary) !important; }
+.text-gray-500    { color: var(--text-secondary) !important; }
+.text-gray-600    { color: var(--text-muted) !important; }
+
+.bubble-sent {
+  background-color: var(--bubble-mine) !important;
+  color: var(--bubble-mine-text) !important;
+  border-radius: 18px 18px 4px 18px;
+}
+.bubble-recv {
+  background-color: var(--bubble-theirs) !important;
+  color: var(--bubble-theirs-text) !important;
+  border-radius: 18px 18px 18px 4px;
+}
+
+/* ── Mobile viewport fix ─────────────────────────────────────────────── */
+html, body { height: 100%; height: -webkit-fill-available; }
+.h-screen   { height: 100vh; height: -webkit-fill-available; }
+.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* ── Custom scrollbar ─────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a3040; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #3a4255; }
+::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: 99px; }
 
-/* ── Typing indicator dots ───────────────────────────────────────────────── */
+/* ── Typing dots ──────────────────────────────────────────────────────── */
 .typing-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
-  display: inline-block;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand); display: inline-block;
   animation: typingBounce 1.2s infinite;
 }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes typingBounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30%            { transform: translateY(-6px); opacity: 1; }
+  0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+  30%          { transform: translateY(-6px); opacity: 1; }
 }
 
-/* ── Message bubble tails ─────────────────────────────────────────────── */
-.bubble-sent { border-radius: 18px 18px 4px 18px; }
-.bubble-recv { border-radius: 18px 18px 18px 4px; }
+/* ── Animations ────────────────────────────────────────────────────────── */
+@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-12px) } to { opacity: 1; transform: translateX(0) } }
 
-/* ── Animations ──────────────────────────────────────────────────────────── */
-@keyframes fadeIn   { from { opacity: 0 } to { opacity: 1 } }
-@keyframes slideUp  { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: translateY(0) } }
+.animate-fade-in   { animation: fadeIn 0.2s ease-out; }
+.animate-slide-up  { animation: slideUp 0.3s ease-out; }
+.animate-slide-in  { animation: slideIn 0.25s ease-out; }
 
-.animate-fade-in  { animation: fadeIn 0.2s ease-out; }
-.animate-slide-up { animation: slideUp 0.3s ease-out; }
+/* ── Mobile ────────────────────────────────────────────────────────────── */
+button, a { -webkit-tap-highlight-color: transparent; }
 
-/* ── Prevent text selection on long press (mobile) ───────────────────── */
-.no-select {
-  -webkit-user-select: none;
-  user-select: none;
+/* ── Voice message waveform ─────────────────────────────────────────── */
+.waveform-bar {
+  width: 3px;
+  border-radius: 99px;
+  background: currentColor;
+  animation: waveform 1s ease-in-out infinite;
 }
-
-/* ── Mobile tap highlight removal ────────────────────────────────────── */
-button, a {
-  -webkit-tap-highlight-color: transparent;
+@keyframes waveform {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
 }
