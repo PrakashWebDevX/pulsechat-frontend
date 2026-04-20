@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Message } from "@/types";
+import MessageBubble from "./MessageBubble";
 
 interface Props {
   messages: Message[];
@@ -9,11 +10,10 @@ interface Props {
   loading: boolean;
   isTyping: boolean;
   partnerName: string;
-}
-
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  onReact: (messageId: string, emoji: string) => void;
+  onReply: (msg: Message) => void;
+  onEdit: (msg: Message) => void;
+  onDelete: (messageId: string) => void;
 }
 
 function formatDateLabel(iso: string): string {
@@ -21,16 +21,14 @@ function formatDateLabel(iso: string): string {
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate() - 1);
-
   if (d.toDateString() === today.toDateString()) return "Today";
   if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
   return d.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
 }
 
-export default function ChatWindow({ messages, myId, loading, isTyping, partnerName }: Props) {
+export default function ChatWindow({ messages, myId, loading, isTyping, partnerName, onReact, onReply, onEdit, onDelete }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -43,20 +41,17 @@ export default function ChatWindow({ messages, myId, loading, isTyping, partnerN
     );
   }
 
-  // Group messages by date for date separators
+  // Group by date
   const groups: { label: string; msgs: Message[] }[] = [];
   for (const msg of messages) {
     const label = formatDateLabel(msg.createdAt);
     const last = groups[groups.length - 1];
-    if (last && last.label === label) {
-      last.msgs.push(msg);
-    } else {
-      groups.push({ label, msgs: [msg] });
-    }
+    if (last && last.label === label) last.msgs.push(msg);
+    else groups.push({ label, msgs: [msg] });
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-5 py-4 space-y-1 bg-surface">
+    <div className="flex-1 overflow-y-auto px-5 py-4 bg-surface">
       {messages.length === 0 && !isTyping && (
         <div className="flex flex-col items-center justify-center h-full gap-2 text-center">
           <div className="w-12 h-12 rounded-2xl bg-surface-raised border border-surface-border flex items-center justify-center">
@@ -66,14 +61,13 @@ export default function ChatWindow({ messages, myId, loading, isTyping, partnerN
             </svg>
           </div>
           <p className="text-sm text-gray-500">
-            No messages yet. Say hi to <span className="text-white">{partnerName}</span>!
+            Say hi to <span className="text-white">{partnerName}</span>!
           </p>
         </div>
       )}
 
       {groups.map((group) => (
         <div key={group.label}>
-          {/* Date separator */}
           <div className="flex items-center gap-3 my-4">
             <div className="flex-1 h-px bg-surface-border" />
             <span className="text-xs text-gray-600 font-medium">{group.label}</span>
@@ -81,44 +75,29 @@ export default function ChatWindow({ messages, myId, loading, isTyping, partnerN
           </div>
 
           {group.msgs.map((msg, i) => {
-            const isMine = msg.senderId === myId;
             const prevMsg = group.msgs[i - 1];
             const isGrouped =
               prevMsg &&
               prevMsg.senderId === msg.senderId &&
-              new Date(msg.createdAt).getTime() -
-                new Date(prevMsg.createdAt).getTime() <
-                60_000;
+              new Date(msg.createdAt).getTime() - new Date(prevMsg.createdAt).getTime() < 60_000;
 
             return (
-              <div
+              <MessageBubble
                 key={msg._id}
-                className={`flex ${isMine ? "justify-end" : "justify-start"} ${
-                  isGrouped ? "mt-0.5" : "mt-3"
-                } animate-fade-in`}
-              >
-                <div
-                  className={`max-w-[70%] px-4 py-2.5 text-sm leading-relaxed break-words
-                    ${isMine
-                      ? "bg-brand-600 text-white bubble-sent"
-                      : "bg-surface-raised text-gray-100 bubble-recv"
-                    }`}
-                >
-                  <p>{msg.message}</p>
-                  <p
-                    className={`text-[10px] mt-1 text-right
-                      ${isMine ? "text-brand-100/70" : "text-gray-600"}`}
-                  >
-                    {formatTime(msg.createdAt)}
-                  </p>
-                </div>
-              </div>
+                msg={msg}
+                isMine={msg.senderId === myId}
+                isGrouped={!!isGrouped}
+                myId={myId}
+                onReact={onReact}
+                onReply={onReply}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             );
           })}
         </div>
       ))}
 
-      {/* Typing indicator */}
       {isTyping && (
         <div className="flex justify-start mt-3 animate-fade-in">
           <div className="bg-surface-raised rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-1">
