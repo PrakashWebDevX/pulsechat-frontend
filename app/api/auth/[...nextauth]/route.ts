@@ -1,5 +1,33 @@
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export async function POST(req: NextRequest) {
+  try {
+    const { messages, systemPrompt } = await req.json();
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY || "",
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1024,
+        system: systemPrompt || "You are PulseBot, a friendly AI assistant inside PulseChat. Be helpful, concise, and friendly. Use emojis occasionally.",
+        messages,
+      }),
+    });
+
+    if (!response.ok) {
+      return NextResponse.json({ error: "AI service unavailable" }, { status: 503 });
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || "Sorry, I couldn't respond right now.";
+    return NextResponse.json({ text });
+  } catch (err) {
+    console.error("AI route error:", err);
+    return NextResponse.json({ error: "Failed to get AI response" }, { status: 500 });
+  }
+}

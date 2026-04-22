@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { User, Group, ChatTarget } from "@/types";
 import { useTheme } from "@/lib/ThemeContext";
+import { toggleSound, isSoundEnabled } from "@/lib/sounds";
 import CreateGroupModal from "./CreateGroupModal";
 
 interface Props {
@@ -16,16 +17,29 @@ interface Props {
   onSelectTarget: (target: ChatTarget) => void;
   onGroupCreated: (group: Group) => void;
   onCallUser?: (user: User, type: "video" | "voice") => void;
+  onOpenAI?: () => void;
 }
 
-export default function Sidebar({ currentUser, users, groups, selectedTarget, onlineUsers, onSelectTarget, onGroupCreated, onCallUser }: Props) {
+export default function Sidebar({ currentUser, users, groups, selectedTarget, onlineUsers, onSelectTarget, onGroupCreated, onCallUser, onOpenAI }: Props) {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
   const [tab, setTab] = useState<"chats" | "groups">("chats");
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [hoveredUser, setHoveredUser] = useState<string | null>(null);
+  const [soundOn, setSoundOn] = useState(() => isSoundEnabled());
 
   const selectedId = selectedTarget?.kind === "user" ? selectedTarget.data._id : selectedTarget?.kind === "group" ? selectedTarget.data._id : null;
+
+  const navIcons = [
+    { icon: "🔍", title: "Search", action: () => router.push("/search") },
+    { icon: "◎", title: "Stories", action: () => router.push("/stories") },
+    { icon: "📊", title: "Analytics", action: () => router.push("/analytics") },
+    { icon: "🎨", title: "Appearance", action: () => router.push("/appearance") },
+    { icon: "🤖", title: "AI Assistant", action: onOpenAI },
+    { icon: theme === "dark" ? "☀️" : "🌙", title: "Toggle Theme", action: toggleTheme },
+    { icon: soundOn ? "🔔" : "🔕", title: "Toggle Sound", action: () => { const next = toggleSound(); setSoundOn(next); } },
+    { icon: "+", title: "New Group", action: () => setShowCreateGroup(true) },
+  ];
 
   return (
     <>
@@ -33,26 +47,21 @@ export default function Sidebar({ currentUser, users, groups, selectedTarget, on
         {/* Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-surface-border flex-shrink-0">
           <span className="font-semibold text-white tracking-tight text-lg">Pulse<span className="text-brand-500">Chat</span></span>
-          <div className="flex items-center gap-1">
-            {/* Stories */}
-            <button onClick={() => router.push("/stories")} title="Stories"
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-surface-raised transition-colors text-base">
-              ◎
-            </button>
-            {/* Dark/Light toggle */}
-            <button onClick={toggleTheme} title="Toggle theme"
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-surface-raised transition-colors">
-              {theme === "dark"
-                ? <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              }
-            </button>
-            {/* New group */}
-            <button onClick={() => setShowCreateGroup(true)} title="New Group"
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-white hover:bg-surface-raised transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            </button>
+          <div className="flex items-center gap-0.5">
+            {navIcons.map((nav) => (
+              <button key={nav.title} onClick={() => nav.action?.()}
+                title={nav.title}
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-surface-raised transition-colors text-sm">
+                {nav.icon}
+              </button>
+            ))}
           </div>
+        </div>
+
+        {/* Online count */}
+        <div className="px-4 py-2 border-b border-surface-border flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+          <span className="text-xs text-gray-400">{onlineUsers.length} online now</span>
         </div>
 
         {/* Tabs */}
@@ -90,22 +99,15 @@ export default function Sidebar({ currentUser, users, groups, selectedTarget, on
                       </div>
                     </button>
 
-                    {/* Call buttons on hover */}
                     {hoveredUser === user._id && onCallUser && isOnline && (
-                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 animate-fade-in">
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 animate-fade-in z-10">
                         <button onClick={(e) => { e.stopPropagation(); onCallUser(user, "voice"); }}
-                          className="w-7 h-7 rounded-lg bg-brand-500/20 hover:bg-brand-500/40 text-brand-500 flex items-center justify-center transition-colors"
-                          title="Voice call">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
+                          className="w-7 h-7 rounded-lg bg-brand-500/20 hover:bg-brand-500/40 text-brand-500 flex items-center justify-center transition-colors" title="Voice call">
+                          📞
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); onCallUser(user, "video"); }}
-                          className="w-7 h-7 rounded-lg bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 flex items-center justify-center transition-colors"
-                          title="Video call">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
+                          className="w-7 h-7 rounded-lg bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 flex items-center justify-center transition-colors" title="Video call">
+                          📹
                         </button>
                       </div>
                     )}
@@ -151,7 +153,7 @@ export default function Sidebar({ currentUser, users, groups, selectedTarget, on
               <span className="text-xs text-gray-600 truncate">{currentUser?.email}</span>
             </div>
             <button onClick={() => signOut({ callbackUrl: "/login" })} title="Sign out"
-              className="flex-shrink-0 p-2 rounded-xl text-gray-600 hover:text-gray-300 hover:bg-surface-raised transition-colors">
+              className="flex-shrink-0 p-2 rounded-xl text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             </button>
           </div>
