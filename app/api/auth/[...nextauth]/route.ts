@@ -1,33 +1,57 @@
-import { NextRequest, NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
 
-export async function POST(req: NextRequest) {
-  try {
-    const { messages, systemPrompt } = await req.json();
+const handler = NextAuth({
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  callbacks: {
+    async signIn({ user }) {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/upsert`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: user.name,
+              email: user.email,
+              image: user.image,
+            }),
+          }
+        );
+        if (!res.ok) return false;
+        const dbUser = await res.json();
+        (user as any).dbId = dbUser._id;
+        return true;
+      } catch (err) {
+        console.error("signIn error:", err);
+        return false;
+      }
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.dbId = (user as any).dbId;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as any).id = token.dbId as string;
+      }
+      return session;
+    },
+  },
+  pages: {
+    signIn: "/login",
+  },
+  session: {
+    strategy: "jwt",
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+});
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY || "",
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 1024,
-        system: systemPrompt || "You are PulseBot, a friendly AI assistant inside PulseChat. Be helpful, concise, and friendly. Use emojis occasionally.",
-        messages,
-      }),
-    });
-
-    if (!response.ok) {
-      return NextResponse.json({ error: "AI service unavailable" }, { status: 503 });
-    }
-
-    const data = await response.json();
-    const text = data.content?.[0]?.text || "Sorry, I couldn't respond right now.";
-    return NextResponse.json({ text });
-  } catch (err) {
-    console.error("AI route error:", err);
-    return NextResponse.json({ error: "Failed to get AI response" }, { status: 500 });
-  }
-}
+export { handler as GET, handler as POST };

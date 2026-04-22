@@ -8,7 +8,6 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-
   callbacks: {
     async signIn({ user }) {
       try {
@@ -28,35 +27,20 @@ export const authOptions: NextAuthOptions = {
         const dbUser = await res.json();
         (user as any).dbId = dbUser._id;
         return true;
-      } catch (err) {
-        console.error("signIn error:", err);
+      } catch {
         return false;
       }
     },
-
     async jwt({ token, user }) {
-      if (user) {
-        token.dbId = (user as any).dbId;
-      }
+      if (user) token.dbId = (user as any).dbId;
       return token;
     },
-
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).id = token.dbId as string;
-      }
+      if (session.user) (session.user as any).id = token.dbId as string;
       return session;
     },
   },
-
-  pages: {
-    signIn: "/login",
-  },
-
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-
+  pages: { signIn: "/login" },
+  session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
 };
