@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enable Notifications - PulseChat</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f1117;
+      color: #fff;
+      font-family: -apple-system, 'DM Sans', sans-serif;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 0;
+      border-bottom: 1px solid #2a3040;
+      margin-bottom: 24px;
+    }
+    .logo { font-size: 20px; font-weight: 700; }
+    .logo span { color: #22c55e; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    p { color: #9ca3af; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+    .card {
+      background: #171b24;
+      border: 1px solid #2a3040;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap-8; }
+    .card .emoji { font-size: 24px; margin-right: 8px; }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      background: #22c55e;
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step p { margin: 0; color: #d1d5db; font-size: 14px; }
+    .step strong { color: #fff; }
+    .note {
+      background: #1e2330;
+      border: 1px solid #22c55e33;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #22c55e;
+    }
+    .back-btn {
+      display: block;
+      background: #22c55e;
+      color: #000;
+      text-align: center;
+      padding: 14px;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Pulse<span>Chat</span></div>
+  </div>
+
+  <h1>Enable Notifications 🔔</h1>
+  <p>Follow the steps below for your device to receive message notifications when the app is closed.</p>
+
+  <!-- Android -->
+  <div class="card">
+    <h2><span class="emoji">🤖</span> Android (Chrome)</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <p>Open PulseChat in <strong>Chrome browser</strong></p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <p>Tap the <strong>Install</strong> banner or Chrome menu → <strong>Add to Home Screen</strong></p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <p>Open the installed app → tap <strong>Allow</strong> when asked for notification permission</p>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <p>If blocked: <strong>Settings → Apps → Chrome → Notifications → Allow</strong></p>
+    </div>
+  </div>
+
+  <!-- iPhone -->
+  <div class="card">
+    <h2><span class="emoji">🍎</span> iPhone / iPad (iOS 16.4+)</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <p>Open PulseChat in <strong>Safari</strong> (not Chrome)</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <p>Tap the <strong>Share</strong> button ⬆ at the bottom</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <p>Scroll and tap <strong>Add to Home Screen</strong></p>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <p>Open the app from your home screen</p>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <p>Tap <strong>Allow</strong> on the notification permission popup</p>
+    </div>
+    <div class="note">
+      ⚠️ iOS push notifications only work when the app is installed via Safari's "Add to Home Screen"
+    </div>
+  </div>
+
+  <a href="/chat" class="back-btn">← Back to Chat</a>
+</body>
+</html>

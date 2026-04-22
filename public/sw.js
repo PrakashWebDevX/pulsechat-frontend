@@ -1,128 +1,174 @@
-const CACHE_NAME = "pulsechat-v2";
-const OFFLINE_URL = "/offline.html";
+/* ============================================================
+   PulseChat Service Worker v3
+   Handles: PWA install, offline cache, push notifications
+   ============================================================ */
 
-const PRECACHE = [
-  "/",
-  "/chat",
-  "/login",
-  OFFLINE_URL,
-];
+const CACHE_VERSION = "pulsechat-v3";
+const OFFLINE_PAGE  = "/offline.html";
+
+const PRECACHE_URLS = ["/", "/chat", "/login", OFFLINE_PAGE];
 
 // ── Install ────────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
+  console.log("[SW] Installing...");
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE).catch(() => {}))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_VERSION)
+      .then((cache) => {
+        return Promise.allSettled(
+          PRECACHE_URLS.map((url) => cache.add(url).catch(() => {}))
+        );
+      })
+      .then(() => {
+        console.log("[SW] Installed");
+        return self.skipWaiting();
+      })
   );
 });
 
 // ── Activate ───────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
+  console.log("[SW] Activating...");
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(
-        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
-      ))
-      .then(() => self.clients.claim())
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((k) => k !== CACHE_VERSION)
+            .map((k) => {
+              console.log("[SW] Deleting old cache:", k);
+              return caches.delete(k);
+            })
+        )
+      )
+      .then(() => {
+        console.log("[SW] Activated");
+        return self.clients.claim();
+      })
   );
 });
 
-// ── Fetch ──────────────────────────────────────────────────────────────────
+// ── Fetch (offline support) ────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
-  // Only handle GET requests
   if (event.request.method !== "GET") return;
-  // Skip chrome-extension and non-http requests
   if (!event.request.url.startsWith("http")) return;
-  // Skip API and socket requests
-  if (event.request.url.includes("/api/") ||
-      event.request.url.includes("socket.io") ||
-      event.request.url.includes("onrender.com")) return;
+
+  // Skip: API calls, socket.io, external services
+  const url = event.request.url;
+  if (
+    url.includes("/api/") ||
+    url.includes("socket.io") ||
+    url.includes("onrender.com") ||
+    url.includes("googleapis.com") ||
+    url.includes("googleusercontent.com")
+  ) return;
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Cache successful responses
-        if (response && response.status === 200) {
+        if (response && response.status === 200 && response.type === "basic") {
           const clone = response.clone();
-          caches.open(CACHE_NAME)
+          caches.open(CACHE_VERSION)
             .then((cache) => cache.put(event.request, clone))
             .catch(() => {});
         }
         return response;
       })
-      .catch(() => {
-        // Serve from cache or offline page
-        return caches.match(event.request)
-          .then((cached) => cached || caches.match(OFFLINE_URL));
-      })
+      .catch(() =>
+        caches.match(event.request)
+          .then((cached) => cached || caches.match(OFFLINE_PAGE))
+      )
   );
 });
 
 // ── Push Notification ──────────────────────────────────────────────────────
 self.addEventListener("push", (event) => {
-  let data = {};
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch {
-    data = { title: "PulseChat", body: event.data ? event.data.text() : "New message" };
+  console.log("[SW] Push received");
+
+  let data = {
+    title: "PulseChat",
+    body: "You have a new message",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    url: "/chat",
+    tag: "pulsechat",
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      data = { ...data, ...parsed };
+    } catch {
+      data.body = event.data.text();
+    }
   }
 
-  const title = data.title || "PulseChat";
   const options = {
-    body: data.body || "You have a new message",
-    icon: "/icon-192.png",
-    badge: "/icon-badge.png",
-    vibrate: [200, 100, 200, 100, 200],
-    tag: data.tag || "pulsechat-notification",
+    body: data.body,
+    icon: data.icon || "/icon-192.png",
+    badge: data.badge || "/icon-192.png",
+    tag: data.tag || "pulsechat-msg",
     renotify: true,
     requireInteraction: false,
+    vibrate: [200, 100, 200],
     silent: false,
     data: {
       url: data.url || "/chat",
       senderId: data.senderId,
+      timestamp: Date.now(),
     },
+    // Android action buttons
     actions: [
-      { action: "open", title: "Open Chat" },
+      { action: "open",    title: "Open"    },
       { action: "dismiss", title: "Dismiss" },
     ],
   };
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification(data.title, options)
+      .then(() => console.log("[SW] Notification shown:", data.title))
+      .catch((err) => console.error("[SW] Notification error:", err))
   );
 });
 
 // ── Notification Click ─────────────────────────────────────────────────────
 self.addEventListener("notificationclick", (event) => {
+  console.log("[SW] Notification clicked:", event.action);
   event.notification.close();
 
   if (event.action === "dismiss") return;
 
-  const urlToOpen = event.notification.data?.url || "/chat";
+  const targetUrl = event.notification.data?.url || "/chat";
 
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        // If app is already open, focus it
-        for (const client of clientList) {
-          if (client.url.includes("pulsechat") && "focus" in client) {
-            client.navigate(urlToOpen);
-            return client.focus();
-          }
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    }).then((clientList) => {
+      // Find existing open window
+      for (const client of clientList) {
+        if ("focus" in client) {
+          client.navigate(targetUrl);
+          return client.focus();
         }
-        // Otherwise open a new window
-        if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
-        }
-      })
+      }
+      // Open new window if none found
+      return clients.openWindow(targetUrl);
+    })
   );
 });
 
-// ── Background Sync (for offline messages) ────────────────────────────────
-self.addEventListener("sync", (event) => {
-  if (event.tag === "sync-messages") {
-    // Messages queued while offline will sync here
-    event.waitUntil(Promise.resolve());
+// ── Notification Close ─────────────────────────────────────────────────────
+self.addEventListener("notificationclose", (event) => {
+  console.log("[SW] Notification closed");
+});
+
+// ── Message from page ──────────────────────────────────────────────────────
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+  // Ping to check SW is alive
+  if (event.data === "PING") {
+    event.ports[0]?.postMessage("PONG");
   }
 });
