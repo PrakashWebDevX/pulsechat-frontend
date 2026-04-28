@@ -2,207 +2,206 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Theme Variables ─────────────────────────────────────────────────────── */
+/* ── Theme Variables ─────────────────────────────────────────────────── */
 :root, [data-theme="dark"] {
-  --bg-surface:         #0a0f1a;
-  --bg-card:            #111827;
-  --bg-raised:          #1a2235;
-  --bg-border:          #1e2d3d;
-  --text-primary:       #f1f5f9;
-  --text-secondary:     #8b9dc3;
-  --text-muted:         #3d5070;
-  --brand:              #22c55e;
-  --brand-dark:         #16a34a;
-  --brand-glow:         rgba(34,197,94,0.15);
-  --bubble-mine:        #16a34a;
-  --bubble-mine-text:   #ffffff;
-  --bubble-theirs:      #1a2235;
-  --bubble-theirs-text: #e2e8f0;
-  --shadow-color:       rgba(0,0,0,0.5);
+  --bg-app:       #0b141a;
+  --bg-sidebar:   #111b21;
+  --bg-chat:      #0b141a;
+  --bg-header:    #202c33;
+  --bg-input:     #2a3942;
+  --bg-item:      #111b21;
+  --bg-item-hover:#182229;
+  --bg-item-sel:  #2a3942;
+  --bg-bubble-out:#005c4b;
+  --bg-bubble-in: #202c33;
+  --bg-search:    #2a3942;
+  --bg-modal:     #233138;
+  --text-primary: #e9edef;
+  --text-secondary:#aebac1;
+  --text-muted:   #667781;
+  --text-time:    #8696a0;
+  --brand:        #00a884;
+  --brand-light:  #25d366;
+  --brand-dark:   #008f72;
+  --divider:      #222d34;
+  --tick-read:    #53bdeb;
+  --bubble-tail-out: #005c4b;
+  --bubble-tail-in:  #202c33;
 }
-
 [data-theme="light"] {
-  --bg-surface:         #f0f4f8;
-  --bg-card:            #ffffff;
-  --bg-raised:          #f8fafc;
-  --bg-border:          #e2e8f0;
-  --text-primary:       #0f172a;
-  --text-secondary:     #475569;
-  --text-muted:         #94a3b8;
-  --brand:              #16a34a;
-  --brand-dark:         #15803d;
-  --brand-glow:         rgba(22,163,74,0.12);
-  --bubble-mine:        #22c55e;
-  --bubble-mine-text:   #ffffff;
-  --bubble-theirs:      #ffffff;
-  --bubble-theirs-text: #0f172a;
-  --shadow-color:       rgba(0,0,0,0.08);
+  --bg-app:       #f0f2f5;
+  --bg-sidebar:   #ffffff;
+  --bg-chat:      #efeae2;
+  --bg-header:    #f0f2f5;
+  --bg-input:     #ffffff;
+  --bg-item:      #ffffff;
+  --bg-item-hover:#f5f6f6;
+  --bg-item-sel:  #f0f2f5;
+  --bg-bubble-out:#d9fdd3;
+  --bg-bubble-in: #ffffff;
+  --bg-search:    #f0f2f5;
+  --bg-modal:     #ffffff;
+  --text-primary: #111b21;
+  --text-secondary:#3b4a54;
+  --text-muted:   #667781;
+  --text-time:    #667781;
+  --brand:        #00a884;
+  --brand-light:  #25d366;
+  --brand-dark:   #008f72;
+  --divider:      #e9edef;
+  --tick-read:    #53bdeb;
 }
 
-/* ── Base ────────────────────────────────────────────────────────────────── */
-html, body {
-  height: 100%;
-  height: -webkit-fill-available;
-  background-color: var(--bg-surface);
+/* ── Base ────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; height: -webkit-fill-available; }
+body {
+  height: 100%; height: -webkit-fill-available;
+  background: var(--bg-app);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
 }
-
 .h-screen { height: 100vh; height: -webkit-fill-available; }
-.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-pb   { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.safe-pt   { padding-top:    env(safe-area-inset-top,    0px); }
 
-/* ── Tailwind overrides with CSS vars ────────────────────────────────────── */
-.bg-surface        { background-color: var(--bg-surface) !important; }
-.bg-surface-card   { background-color: var(--bg-card) !important; }
-.bg-surface-raised { background-color: var(--bg-raised) !important; }
-.border-surface-border { border-color: var(--bg-border) !important; }
-.text-white        { color: var(--text-primary) !important; }
-.text-gray-300     { color: var(--text-secondary) !important; }
-.text-gray-400     { color: var(--text-secondary) !important; }
-.text-gray-500     { color: var(--text-secondary) !important; }
-.text-gray-600     { color: var(--text-muted) !important; }
-.text-gray-700     { color: var(--text-muted) !important; }
-
-/* ── Brand colors ────────────────────────────────────────────────────────── */
+/* ── Tailwind overrides ──────────────────────────────────────────────── */
+.bg-surface        { background: var(--bg-sidebar) !important; }
+.bg-surface-card   { background: var(--bg-header)  !important; }
+.bg-surface-raised { background: var(--bg-input)   !important; }
+.border-surface-border { border-color: var(--divider) !important; }
+.text-white        { color: var(--text-primary)   !important; }
+.text-gray-300, .text-gray-400, .text-gray-500 { color: var(--text-secondary) !important; }
+.text-gray-600, .text-gray-700 { color: var(--text-muted) !important; }
 .text-brand-500    { color: var(--brand) !important; }
-.bg-brand-500      { background-color: var(--brand) !important; }
-.bg-brand-600      { background-color: var(--brand-dark) !important; }
-.border-brand-500  { border-color: var(--brand) !important; }
+.bg-brand-500      { background: var(--brand) !important; }
+.bg-brand-600      { background: var(--brand-dark) !important; }
 
-/* ── Message bubbles ─────────────────────────────────────────────────────── */
+/* ── WA Chat bubbles ─────────────────────────────────────────────────── */
 .bubble-sent {
-  background: linear-gradient(135deg, var(--brand), var(--brand-dark)) !important;
-  color: var(--bubble-mine-text) !important;
-  border-radius: 20px 20px 4px 20px;
-  box-shadow: 0 2px 12px var(--brand-glow);
+  background: var(--bg-bubble-out);
+  color: var(--text-primary);
+  border-radius: 7.5px 7.5px 0 7.5px;
+  position: relative;
 }
 .bubble-recv {
-  background-color: var(--bubble-theirs) !important;
-  color: var(--bubble-theirs-text) !important;
-  border-radius: 20px 20px 20px 4px;
-  border: 1px solid var(--bg-border);
+  background: var(--bg-bubble-in);
+  color: var(--text-primary);
+  border-radius: 7.5px 7.5px 7.5px 0;
+  position: relative;
+}
+/* Tail for sent */
+.bubble-sent::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: -8px;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 0 8px 8px;
+  border-color: transparent transparent var(--bg-bubble-out) transparent;
+}
+/* Tail for received */
+.bubble-recv::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: -8px;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 8px 8px 0;
+  border-color: transparent var(--bg-bubble-in) transparent transparent;
 }
 
-/* ── Scrollbar ───────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 3px; }
+/* ── Scrollbar ───────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); }
 
-/* ── Typing dots ─────────────────────────────────────────────────────────── */
+/* ── Typing dots ─────────────────────────────────────────────────────── */
 .typing-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--brand); display: inline-block;
-  animation: typingBounce 1.4s ease-in-out infinite;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-muted);
+  display: inline-block;
+  animation: tdot 1.4s ease-in-out infinite;
 }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
 
-@keyframes typingBounce {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
-  30% { transform: translateY(-8px); opacity: 1; }
+/* ── WA Chat background pattern ─────────────────────────────────────── */
+.chat-bg-dark {
+  background-color: #0b141a;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M0 0h80v80H0z' fill='none'/%3E%3Cpath d='M40 10c16.6 0 30 13.4 30 30S56.6 70 40 70 10 56.6 10 40 23.4 10 40 10zm0 5c-13.8 0-25 11.2-25 25s11.2 25 25 25 25-11.2 25-25-11.2-25-25-25z' fill='rgba(255,255,255,.015)'/%3E%3C/svg%3E");
+}
+.chat-bg-light {
+  background-color: #efeae2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M40 10c16.6 0 30 13.4 30 30S56.6 70 40 70 10 56.6 10 40 23.4 10 40 10zm0 5c-13.8 0-25 11.2-25 25s11.2 25 25 25 25-11.2 25-25-11.2-25-25-25z' fill='rgba(0,0,0,.03)'/%3E%3C/svg%3E");
 }
 
-/* ── Swipe to reply ──────────────────────────────────────────────────────── */
-.message-swipeable {
-  touch-action: pan-y;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: transform 0.15s ease;
-}
-.reply-indicator {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  pointer-events: none;
-}
-.reply-indicator.visible { opacity: 1; }
+/* ── Animations ──────────────────────────────────────────────────────── */
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes scaleIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+@keyframes shimmer { from{background-position:-200% 0} to{background-position:200% 0} }
 
-/* ── Animations ──────────────────────────────────────────────────────────── */
-@keyframes fadeIn    { from { opacity: 0 } to { opacity: 1 } }
-@keyframes slideUp   { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
-@keyframes slideIn   { from { opacity: 0; transform: translateX(-16px) } to { opacity: 1; transform: translateX(0) } }
-@keyframes slideRight{ from { opacity: 0; transform: translateX(16px) } to { opacity: 1; transform: translateX(0) } }
-@keyframes scaleIn   { from { opacity: 0; transform: scale(0.92) } to { opacity: 1; transform: scale(1) } }
-@keyframes shimmer   { from { background-position: -200% 0 } to { background-position: 200% 0 } }
-@keyframes glow      { 0%,100% { box-shadow: 0 0 20px var(--brand-glow) } 50% { box-shadow: 0 0 40px var(--brand-glow) } }
+.animate-fade-in  { animation: fadeIn  0.2s ease-out; }
+.animate-slide-up { animation: slideUp 0.25s ease-out; }
+.animate-scale-in { animation: scaleIn 0.15s ease-out; }
 
-.animate-fade-in    { animation: fadeIn 0.25s ease-out; }
-.animate-slide-up   { animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-.animate-slide-in   { animation: slideIn 0.25s ease-out; }
-.animate-slide-right{ animation: slideRight 0.25s ease-out; }
-.animate-scale-in   { animation: scaleIn 0.2s cubic-bezier(0.34,1.56,0.64,1); }
-.animate-glow       { animation: glow 2s ease-in-out infinite; }
-
-/* ── Shimmer skeleton ────────────────────────────────────────────────────── */
+/* ── Shimmer ─────────────────────────────────────────────────────────── */
 .shimmer {
-  background: linear-gradient(90deg, var(--bg-raised) 25%, var(--bg-border) 50%, var(--bg-raised) 75%);
+  background: linear-gradient(90deg, var(--bg-item) 25%, var(--divider) 50%, var(--bg-item) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* ── Glass effect ────────────────────────────────────────────────────────── */
-.glass {
-  background: rgba(17, 24, 39, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255,255,255,0.06);
-}
-[data-theme="light"] .glass {
-  background: rgba(255,255,255,0.7);
-  border: 1px solid rgba(0,0,0,0.06);
-}
-
-/* ── Premium input ───────────────────────────────────────────────────────── */
-.premium-input {
-  background: var(--bg-raised);
-  border: 1.5px solid var(--bg-border);
-  color: var(--text-primary);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.premium-input:focus {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-glow);
-  outline: none;
-}
-
-/* ── Online dot pulse ────────────────────────────────────────────────────── */
-.online-dot {
-  width: 10px; height: 10px;
-  background: var(--brand);
-  border-radius: 50%;
-  position: relative;
-}
-.online-dot::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--brand);
-  animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite;
-}
-
-/* ── Mobile touch ────────────────────────────────────────────────────────── */
+/* ── Touch ───────────────────────────────────────────────────────────── */
 button, a { -webkit-tap-highlight-color: transparent; }
 
-/* ── Voice waveform ──────────────────────────────────────────────────────── */
+/* ── Swipe reply ─────────────────────────────────────────────────────── */
+.swipeable { touch-action: pan-y; will-change: transform; }
+
+/* ── WA search bar ───────────────────────────────────────────────────── */
+.wa-search {
+  background: var(--bg-search);
+  border-radius: 8px;
+  height: 35px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 12px;
+  color: var(--text-muted);
+}
+.wa-search input {
+  background: transparent; border: none; outline: none;
+  color: var(--text-primary); font-size: 15px; flex: 1;
+}
+.wa-search input::placeholder { color: var(--text-muted); }
+
+/* ── Unread badge ────────────────────────────────────────────────────── */
+.unread-badge {
+  min-width: 20px; height: 20px;
+  background: var(--brand-light);
+  color: #111; font-size: 11px; font-weight: 700;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+}
+
+/* ── WA nav icon ─────────────────────────────────────────────────────── */
+.wa-nav-icon {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; cursor: pointer; transition: background 0.15s;
+  color: var(--text-secondary);
+}
+.wa-nav-icon:hover { background: var(--bg-item-hover); }
+.wa-nav-icon.active { color: var(--brand); }
+
+/* ── Voice waveform ──────────────────────────────────────────────────── */
 .waveform-bar {
-  border-radius: 99px;
-  animation: waveform 1s ease-in-out infinite;
+  border-radius: 99px; background: currentColor;
+  animation: wave 1s ease-in-out infinite;
 }
-@keyframes waveform {
-  0%,100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
-}
-
-/* ── Last seen ───────────────────────────────────────────────────────────── */
-.last-seen { font-size: 11px; color: var(--text-muted); }
-
-/* ── Search highlight ────────────────────────────────────────────────────── */
-mark {
-  background: rgba(34,197,94,0.25);
-  color: var(--brand);
-  border-radius: 3px;
-  padding: 0 2px;
-}
+@keyframes wave { 0%,100%{transform:scaleY(0.4)} 50%{transform:scaleY(1)} }

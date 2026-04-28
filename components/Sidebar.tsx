@@ -2,30 +2,54 @@
 
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { User, Group, ChatTarget } from "@/types";
+import { useState, useEffect } from "react";
+import { User, Group, ChatTarget, Message } from "@/types";
 import { useTheme } from "@/lib/ThemeContext";
 import CreateGroupModal from "./CreateGroupModal";
 
-// ── SVG Icon components ───────────────────────────────────────────────────
-const Icon = {
-  Search:    () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
-  Stories:   () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8" opacity=".3"/><circle cx="12" cy="12" r="11" opacity=".15"/></svg>,
-  Analytics: () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>,
-  Palette:   () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>,
-  Bot:       () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 15h.01M16 15h.01M12 15h.01"/></svg>,
-  Sun:       () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>,
-  Moon:      () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
-  Plus:      () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>,
-  Chat:      () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-  Group:     () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-  Phone:     () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
-  Video:     () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>,
-  Logout:    () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>,
-  Volume:    () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
-  Mute:      () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>,
-  Translate: () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>,
+// SVG Icons — clean, no emojis
+const I = {
+  Chats:     (a?:boolean) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>{a&&<circle cx="19" cy="4" r="3" fill="#25d366" stroke="none"/>}</svg>,
+  Calls:     () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.82 19.5 19.5 0 015.09 12 19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>,
+  Stories:   () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><circle cx="12" cy="8" r="7" strokeDasharray="3 2" opacity=".5"/><path d="M6 21v-1a6 6 0 0112 0v1"/></svg>,
+  Groups:    () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
+  Search:    () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+  NewChat:   () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  Menu:      () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>,
+  Mic:       () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2"/></svg>,
+  Image:     () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
+  File:      () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+  Settings:  () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
+  Check2:    () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1.5 12.5L6 17l5.5-6M8 12l5.5 6L20 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  Mute:      () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23M12 19v4M8 23h8"/></svg>,
+  Pin:       () => <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.4H21l-5.4 4 2.1 6.6L12 15.4l-5.7 3.6 2.1-6.6L3 8.4h6.6z"/></svg>,
+  Moon:      () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>,
+  Sun:       () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
 };
+
+function timeAgo(iso?: string): string {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) {
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+    const diff = Math.floor((now.getTime() - d.getTime()) / 86400000);
+    if (diff === 1) return "Yesterday";
+    if (diff < 7) return d.toLocaleDateString([], { weekday: "short" });
+    return d.toLocaleDateString([], { day: "2-digit", month: "2-digit", year: "2-digit" });
+  } catch { return ""; }
+}
+
+function lastMsgPreview(msg?: Message): string {
+  if (!msg) return "Tap to start chatting";
+  if (msg.deleted) return "🚫 This message was deleted";
+  if (msg.type === "image") return "📷 Photo";
+  if (msg.type === "audio") return "🎤 Voice message";
+  if (msg.type === "file") return `📎 ${msg.fileName || "File"}`;
+  return msg.message || "";
+}
 
 interface Props {
   currentUser: User & { id: string };
@@ -34,247 +58,279 @@ interface Props {
   selectedTarget: ChatTarget | null;
   onlineUsers: string[];
   lastSeenMap: Record<string, string>;
-  onSelectTarget: (target: ChatTarget) => void;
-  onGroupCreated: (group: Group) => void;
-  onCallUser?: (user: User, type: "video" | "voice") => void;
+  lastMessages: Record<string, Message>;
+  unreadCounts: Record<string, number>;
+  onSelectTarget: (t: ChatTarget) => void;
+  onGroupCreated: (g: Group) => void;
+  onCallUser?: (u: User, t: "video"|"voice") => void;
   onOpenAI?: () => void;
 }
 
-function formatLastSeen(iso: string): string {
-  if (!iso) return "Offline";
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  const hrs = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${days}d ago`;
-}
-
 export default function Sidebar({
-  currentUser, users, groups, selectedTarget, onlineUsers,
-  lastSeenMap, onSelectTarget, onGroupCreated, onCallUser, onOpenAI,
+  currentUser, users, groups, selectedTarget, onlineUsers, lastSeenMap,
+  lastMessages, unreadCounts, onSelectTarget, onGroupCreated, onCallUser, onOpenAI,
 }: Props) {
-  const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const [tab, setTab] = useState<"chats" | "groups">("chats");
+  const router = useRouter();
+  const [tab, setTab] = useState<"chats"|"groups">("chats");
+  const [search, setSearch] = useState("");
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [hoveredUser, setHoveredUser] = useState<string | null>(null);
-  const [soundOn, setSoundOn] = useState(true);
+  const isDark = theme === "dark";
 
   const selectedId = selectedTarget?.kind === "user" ? selectedTarget.data._id
     : selectedTarget?.kind === "group" ? selectedTarget.data._id : null;
 
-  const navItems = [
-    { icon: <Icon.Search />,    title: "Search",      action: () => router.push("/search") },
-    { icon: <Icon.Stories />,   title: "Stories",     action: () => router.push("/stories") },
-    { icon: <Icon.Analytics />, title: "Analytics",   action: () => router.push("/analytics") },
-    { icon: <Icon.Palette />,   title: "Appearance",  action: () => router.push("/appearance") },
-    { icon: <Icon.Bot />,       title: "AI Assistant",action: onOpenAI },
-    { icon: theme === "dark" ? <Icon.Sun /> : <Icon.Moon />, title: "Toggle Theme", action: toggleTheme },
-    { icon: soundOn ? <Icon.Volume /> : <Icon.Mute />, title: "Sound", action: () => setSoundOn(!soundOn) },
-    { icon: <Icon.Plus />,      title: "New Group",   action: () => setShowCreateGroup(true) },
+  const filteredUsers = users.filter((u) =>
+    u.name.toLowerCase().includes(search.toLowerCase()) ||
+    u.email.toLowerCase().includes(search.toLowerCase())
+  );
+  const filteredGroups = groups.filter((g) =>
+    g.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Left nav tabs
+  const navTabs = [
+    { key: "chats",  icon: <I.Chats />,   label: "Chats" },
+    { key: "calls",  icon: <I.Calls />,   label: "Calls" },
+    { key: "stories",icon: <I.Stories />, label: "Status" },
+    { key: "groups", icon: <I.Groups />,  label: "Groups" },
   ];
 
   return (
     <>
-      <aside className="w-full md:w-72 flex-shrink-0 flex flex-col h-full"
-        style={{ background: "var(--bg-card)", borderRight: "1px solid var(--bg-border)" }}>
+      {/* ── Mobile layout: full screen sidebar ───────────────────────── */}
+      <aside className="flex h-full w-full md:w-[360px] flex-shrink-0"
+        style={{ background: "var(--bg-sidebar)", borderRight: `1px solid var(--divider)` }}>
 
-        {/* ── Header ──────────────────────────────────────────────────── */}
-        <div className="h-16 flex items-center justify-between px-4 flex-shrink-0"
-          style={{ borderBottom: "1px solid var(--bg-border)" }}>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, var(--brand), var(--brand-dark))" }}>
-              <Icon.Chat />
-            </div>
-            <span className="font-bold text-lg tracking-tight" style={{ color: "var(--text-primary)" }}>
-              Pulse<span style={{ color: "var(--brand)" }}>Chat</span>
+        {/* ── Left icon strip (desktop only) ───────────────────────── */}
+        <div className="hidden md:flex flex-col items-center py-3 gap-1 flex-shrink-0"
+          style={{ width: 56, background: "var(--bg-app)", borderRight: `1px solid var(--divider)` }}>
+
+          {/* Avatar */}
+          <button onClick={() => router.push("/profile")} className="mb-2">
+            {currentUser?.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={currentUser.image} alt="" className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white"
+                style={{ background: "var(--brand)" }}>{currentUser?.name?.[0]}</div>
+            )}
+          </button>
+
+          {navTabs.map((t) => (
+            <button key={t.key} onClick={() => { if (t.key === "groups") setTab("groups"); else setTab("chats"); }}
+              title={t.label}
+              className={`wa-nav-icon ${tab === t.key || (t.key === "chats" && tab === "chats") ? "active" : ""}`}>
+              {t.icon}
+            </button>
+          ))}
+
+          <div className="flex-1" />
+
+          {/* Theme toggle */}
+          <button onClick={toggleTheme} className="wa-nav-icon" title="Toggle theme">
+            {isDark ? <I.Sun /> : <I.Moon />}
+          </button>
+          {/* AI */}
+          <button onClick={onOpenAI} className="wa-nav-icon" title="AI Assistant">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/>
+              <path d="M12 7v4M8 15h.01M16 15h.01M12 15h.01"/>
+            </svg>
+          </button>
+          {/* Settings */}
+          <button onClick={() => router.push("/appearance")} className="wa-nav-icon" title="Settings">
+            <I.Settings />
+          </button>
+          {/* Logout */}
+          <button onClick={() => signOut({ callbackUrl: "/login" })} className="wa-nav-icon" title="Logout"
+            style={{ color: "#ef4444" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* ── Right panel: search + list ────────────────────────────── */}
+        <div className="flex flex-col flex-1 min-w-0">
+
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+            style={{ background: "var(--bg-header)" }}>
+            <span className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+              {tab === "chats" ? "Chats" : "Groups"}
             </span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowCreateGroup(true)}
+                className="wa-nav-icon" title="New group/chat">
+                <I.NewChat />
+              </button>
+              <button className="wa-nav-icon" title="Menu">
+                <I.Menu />
+              </button>
+            </div>
           </div>
 
-          {/* Nav icons */}
-          <div className="flex items-center gap-0.5">
-            {navItems.map((nav) => (
-              <button key={nav.title} onClick={() => nav.action?.()}
-                title={nav.title}
-                className="w-7 h-7 flex items-center justify-center rounded-lg transition-all hover:scale-110 active:scale-95"
-                style={{ color: "var(--text-muted)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "var(--brand)")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
-              >
-                {nav.icon}
+          {/* Filter tabs (mobile: All / Unread / Favourites) */}
+          <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0 overflow-x-auto"
+            style={{ background: "var(--bg-header)", borderBottom: `1px solid var(--divider)` }}>
+            {["All", "Unread", "Favourites", "Groups"].map((label, i) => (
+              <button key={label}
+                onClick={() => { if (label === "Groups") setTab("groups"); else setTab("chats"); }}
+                className="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all"
+                style={{
+                  background: (i === 0 && tab === "chats") || (label === "Groups" && tab === "groups")
+                    ? "var(--brand-light)" : "var(--bg-input)",
+                  color: (i === 0 && tab === "chats") || (label === "Groups" && tab === "groups")
+                    ? "#111" : "var(--text-secondary)",
+                }}>
+                {label}
+                {label === "Unread" && Object.values(unreadCounts).some((c) => c > 0) && (
+                  <span className="ml-1">{Object.values(unreadCounts).reduce((a, b) => a + b, 0)}</span>
+                )}
               </button>
             ))}
           </div>
-        </div>
 
-        {/* ── Tabs ────────────────────────────────────────────────────── */}
-        <div className="flex flex-shrink-0" style={{ borderBottom: "1px solid var(--bg-border)" }}>
-          {(["chats", "groups"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              className="flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
-              style={{
-                color: tab === t ? "var(--brand)" : "var(--text-muted)",
-                borderBottom: tab === t ? `2px solid var(--brand)` : "2px solid transparent",
-              }}>
-              {t === "chats" ? <><Icon.Chat /><span>Chats</span></> : <><Icon.Group /><span>Groups ({groups.length})</span></>}
-            </button>
-          ))}
-        </div>
+          {/* Search */}
+          <div className="px-3 py-2 flex-shrink-0" style={{ background: "var(--bg-header)" }}>
+            <div className="wa-search">
+              <I.Search />
+              <input value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search or start new chat" />
+            </div>
+          </div>
 
-        {/* ── List ────────────────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto py-2">
-          {tab === "chats" ? (
-            users.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                  style={{ background: "var(--bg-raised)", color: "var(--text-muted)" }}>
-                  <Icon.Chat />
+          {/* Chat list */}
+          <div className="flex-1 overflow-y-auto">
+            {tab === "chats" ? (
+              filteredUsers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3">
+                  <I.Chats />
+                  <p style={{ color: "var(--text-muted)", fontSize: 14 }}>No chats found</p>
                 </div>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>No contacts yet</p>
-              </div>
-            ) : users.map((user) => {
-              const isOnline = onlineUsers.includes(user._id);
-              const isSelected = selectedId === user._id;
-              const lastSeen = lastSeenMap[user._id];
+              ) : filteredUsers.map((user) => {
+                const isOnline = onlineUsers.includes(user._id);
+                const isSelected = selectedId === user._id;
+                const lastMsg = lastMessages[user._id];
+                const unread = unreadCounts[user._id] || 0;
 
-              return (
-                <div key={user._id} className="relative mx-2 mb-0.5"
-                  onMouseEnter={() => setHoveredUser(user._id)}
-                  onMouseLeave={() => setHoveredUser(null)}>
-                  <button
+                return (
+                  <button key={user._id}
                     onClick={() => onSelectTarget({ kind: "user", data: user })}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 active:scale-[0.98]"
+                    className="w-full flex items-center gap-3 px-4 py-3 transition-all active:scale-[0.99]"
                     style={{
-                      background: isSelected ? "var(--brand-glow)" : "transparent",
-                      border: isSelected ? "1px solid rgba(34,197,94,0.2)" : "1px solid transparent",
+                      background: isSelected ? "var(--bg-item-sel)" : "transparent",
+                      borderBottom: `1px solid var(--divider)`,
                     }}
-                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "var(--bg-raised)"; }}
+                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "var(--bg-item-hover)"; }}
                     onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
                   >
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
                       {user.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={user.image} alt={user.name} className="w-11 h-11 rounded-full object-cover" style={{ border: "2px solid var(--bg-border)" }} />
+                        <img src={user.image} alt="" className="w-12 h-12 rounded-full object-cover" />
                       ) : (
-                        <div className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold"
-                          style={{ background: "linear-gradient(135deg, var(--brand), var(--brand-dark))", color: "#fff" }}>
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white"
+                          style={{ background: "var(--brand)" }}>
                           {user.name[0].toUpperCase()}
                         </div>
                       )}
-                      {/* Online indicator */}
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 transition-colors`}
-                        style={{
-                          background: isOnline ? "var(--brand)" : "var(--text-muted)",
-                          borderColor: "var(--bg-card)",
-                        }} />
+                      {isOnline && (
+                        <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2"
+                          style={{ background: "var(--brand-light)", borderColor: "var(--bg-sidebar)" }} />
+                      )}
                     </div>
 
                     {/* Info */}
-                    <div className="flex flex-col items-start min-w-0 flex-1">
-                      <span className="text-sm font-semibold truncate w-full" style={{ color: "var(--text-primary)" }}>
-                        {user.name}
-                      </span>
-                      <span className="text-xs" style={{ color: isOnline ? "var(--brand)" : "var(--text-muted)" }}>
-                        {isOnline ? "Online" : lastSeen ? formatLastSeen(lastSeen) : "Offline"}
-                      </span>
-                    </div>
-                  </button>
-
-                  {/* Call buttons on hover */}
-                  {hoveredUser === user._id && isOnline && onCallUser && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1 animate-fade-in z-10">
-                      <button onClick={(e) => { e.stopPropagation(); onCallUser(user, "voice"); }}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
-                        style={{ background: "var(--brand-glow)", color: "var(--brand)" }}
-                        title="Voice call">
-                        <Icon.Phone />
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); onCallUser(user, "video"); }}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:scale-110"
-                        style={{ background: "rgba(59,130,246,0.15)", color: "#60a5fa" }}
-                        title="Video call">
-                        <Icon.Video />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          ) : (
-            <>
-              <button onClick={() => setShowCreateGroup(true)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl transition-all mb-1"
-                style={{ color: "var(--brand)", width: "calc(100% - 16px)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--brand-glow)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-                <div className="w-11 h-11 rounded-full border-2 border-dashed flex items-center justify-center"
-                  style={{ borderColor: "var(--brand)" }}>
-                  <Icon.Plus />
-                </div>
-                <span className="text-sm font-semibold">Create New Group</span>
-              </button>
-
-              {groups.map((group) => {
-                const isSelected = selectedId === group._id;
-                return (
-                  <button key={group._id} onClick={() => onSelectTarget({ kind: "group", data: group })}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl transition-all mb-0.5 active:scale-[0.98]"
-                    style={{
-                      background: isSelected ? "var(--brand-glow)" : "transparent",
-                      border: isSelected ? "1px solid rgba(34,197,94,0.2)" : "1px solid transparent",
-                      width: "calc(100% - 16px)",
-                    }}>
-                    <div className="w-11 h-11 rounded-full flex items-center justify-center"
-                      style={{ background: "var(--bg-raised)", color: "var(--text-secondary)" }}>
-                      <Icon.Group />
-                    </div>
-                    <div className="flex flex-col items-start min-w-0">
-                      <span className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{group.name}</span>
-                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>{group.members.length} members</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="font-semibold truncate text-[15px]" style={{ color: "var(--text-primary)" }}>
+                          {user.name}
+                        </span>
+                        <span className="text-[11px] ml-2 flex-shrink-0" style={{ color: unread ? "var(--brand-light)" : "var(--text-muted)" }}>
+                          {timeAgo(lastMsg?.createdAt)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[13px] truncate flex-1" style={{ color: "var(--text-secondary)" }}>
+                          {lastMsgPreview(lastMsg)}
+                        </span>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {unread > 0 && (
+                            <span className="unread-badge">{unread > 99 ? "99+" : unread}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </button>
                 );
-              })}
-            </>
-          )}
-        </div>
+              })
+            ) : (
+              <>
+                <button onClick={() => setShowCreateGroup(true)}
+                  className="w-full flex items-center gap-3 px-4 py-3 transition-all"
+                  style={{ borderBottom: `1px solid var(--divider)`, color: "var(--brand)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-item-hover)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-dashed"
+                    style={{ borderColor: "var(--brand)" }}>
+                    <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" viewBox="0 0 24 24">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                  </div>
+                  <span className="font-semibold text-[15px]">New Group</span>
+                </button>
+                {filteredGroups.map((group) => {
+                  const isSelected = selectedId === group._id;
+                  const lastMsg = lastMessages[group._id];
+                  return (
+                    <button key={group._id}
+                      onClick={() => onSelectTarget({ kind: "group", data: group })}
+                      className="w-full flex items-center gap-3 px-4 py-3 transition-all"
+                      style={{
+                        background: isSelected ? "var(--bg-item-sel)" : "transparent",
+                        borderBottom: `1px solid var(--divider)`,
+                      }}
+                      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "var(--bg-item-hover)"; }}
+                      onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}>
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl"
+                        style={{ background: "var(--bg-input)", color: "var(--text-secondary)" }}>
+                        <I.Groups />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="font-semibold text-[15px] truncate" style={{ color: "var(--text-primary)" }}>{group.name}</span>
+                          <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>{timeAgo(lastMsg?.createdAt)}</span>
+                        </div>
+                        <span className="text-[13px]" style={{ color: "var(--text-secondary)" }}>
+                          {group.members.length} members
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </>
+            )}
+          </div>
 
-        {/* ── Footer ──────────────────────────────────────────────────── */}
-        <div className="flex-shrink-0 p-3" style={{ borderTop: "1px solid var(--bg-border)" }}>
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.push("/profile")} className="relative flex-shrink-0 group">
-              {currentUser?.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={currentUser.image} alt={currentUser.name} className="w-10 h-10 rounded-full object-cover transition-all group-hover:ring-2"
-                  style={{ border: "2px solid var(--bg-border)", outlineColor: "var(--brand)" }} />
-              ) : (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, var(--brand), var(--brand-dark))" }}>
-                  {currentUser?.name?.[0] || "?"}
-                </div>
-              )}
-              <div className="online-dot absolute -bottom-0.5 -right-0.5 w-3 h-3 border-2"
-                style={{ borderColor: "var(--bg-card)", borderRadius: "50%" }} />
-            </button>
-
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{currentUser?.name}</span>
-              <span className="text-xs truncate" style={{ color: "var(--text-muted)" }}>{currentUser?.email}</span>
-            </div>
-
-            <button onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-xl transition-all hover:scale-110"
-              style={{ color: "var(--text-muted)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; e.currentTarget.style.background = "transparent"; }}
-              title="Sign out">
-              <Icon.Logout />
-            </button>
+          {/* Mobile bottom nav */}
+          <div className="flex md:hidden items-center justify-around py-2 flex-shrink-0 safe-pb"
+            style={{ background: "var(--bg-header)", borderTop: `1px solid var(--divider)` }}>
+            {[
+              { label: "Chats", icon: <I.Chats />, action: () => setTab("chats"), active: tab === "chats" },
+              { label: "Status", icon: <I.Stories />, action: () => router.push("/stories"), active: false },
+              { label: "Groups", icon: <I.Groups />, action: () => setTab("groups"), active: tab === "groups" },
+              { label: "Settings", icon: <I.Settings />, action: () => router.push("/appearance"), active: false },
+            ].map((item) => (
+              <button key={item.label} onClick={item.action}
+                className="flex flex-col items-center gap-1 px-4 py-1"
+                style={{ color: item.active ? "var(--brand)" : "var(--text-muted)" }}>
+                {item.icon}
+                <span style={{ fontSize: 11 }}>{item.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </aside>

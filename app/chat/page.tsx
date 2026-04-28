@@ -16,37 +16,33 @@ import VideoCallModal from "@/components/VideoCallModal";
 import SplashScreen from "@/components/SplashScreen";
 import AIChatbot from "@/components/AIChatbot";
 
-// SVG Icons
-const Icons = {
-  Phone:    () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.6 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 9.91a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>,
-  Video:    () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>,
-  Search:   () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
-  Translate:() => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>,
-  Back:     () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>,
-  Close:    () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+const I = {
+  Back:     () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>,
+  Phone:    () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.82 19.5 19.5 0 015.09 12 19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>,
+  Video:    () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>,
+  Search:   () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+  Menu:     () => <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>,
+  Translate:() => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>,
+  Close:    () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
 };
 
 const LANGUAGES = [
-  { code: "Tamil", label: "தமிழ் Tamil" },
-  { code: "Hindi", label: "हिंदी Hindi" },
-  { code: "Spanish", label: "🇪🇸 Spanish" },
-  { code: "French", label: "🇫🇷 French" },
-  { code: "Arabic", label: "🇸🇦 Arabic" },
-  { code: "German", label: "🇩🇪 German" },
-  { code: "Japanese", label: "🇯🇵 Japanese" },
-  { code: "Chinese", label: "🇨🇳 Chinese" },
-  { code: "English", label: "🇺🇸 English" },
+  "Tamil", "Hindi", "English", "Spanish", "French",
+  "Arabic", "German", "Japanese", "Chinese", "Korean",
 ];
 
 function formatLastSeen(iso?: string): string {
-  if (!iso) return "Offline";
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Last seen just now";
-  if (mins < 60) return `Last seen ${mins}m ago`;
-  const hrs = Math.floor(diff / 3600000);
-  if (hrs < 24) return `Last seen ${hrs}h ago`;
-  return `Last seen ${Math.floor(diff / 86400000)}d ago`;
+  if (!iso) return "last seen recently";
+  try {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "last seen just now";
+    if (mins < 60) return `last seen ${mins} minutes ago`;
+    const hrs = Math.floor(diff / 3600000);
+    if (hrs < 24) return `last seen today at ${new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    if (hrs < 48) return `last seen yesterday at ${new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    return `last seen ${new Date(iso).toLocaleDateString([], { day: "numeric", month: "short" })}`;
+  } catch { return "last seen recently"; }
 }
 
 export default function ChatPage() {
@@ -60,6 +56,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [lastSeenMap, setLastSeenMap] = useState<Record<string, string>>({});
+  const [lastMessages, setLastMessages] = useState<Record<string, Message>>({});
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [typingInfo, setTypingInfo] = useState<{ senderId: string; senderName?: string } | null>(null);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
@@ -67,16 +65,11 @@ export default function ChatPage() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [showAI, setShowAI] = useState(false);
   const [activeCall, setActiveCall] = useState<any>(null);
-
-  // In-chat search
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Message[]>([]);
-
-  // Translate
   const [showTranslate, setShowTranslate] = useState(false);
-  const [translating, setTranslating] = useState(false);
   const [selectedLang, setSelectedLang] = useState("Tamil");
+  const [translating, setTranslating] = useState(false);
 
   const myId = (session?.user as any)?.id as string | undefined;
   const myName = (session?.user as any)?.name as string | undefined;
@@ -93,22 +86,22 @@ export default function ChatPage() {
     try { socket = connectSocket(myId); } catch { return; }
 
     socket.on("online_users", (ids: string[]) => {
-      setOnlineUsers(Array.isArray(ids) ? ids : []);
-      // Update last seen for newly offline users
+      const safeIds = Array.isArray(ids) ? ids : [];
+      setOnlineUsers(safeIds);
       setLastSeenMap((prev) => {
         const next = { ...prev };
         Object.keys(next).forEach((uid) => {
-          if (!ids.includes(uid)) next[uid] = new Date().toISOString();
+          if (!safeIds.includes(uid)) next[uid] = new Date().toISOString();
         });
         return next;
       });
     });
 
-    const addMsg = (data: SocketMessage, groupId?: string) => {
+    const handleMsg = (data: SocketMessage) => {
       if (!data?.messageId) return;
       const msg: Message = {
         _id: data.messageId, senderId: data.senderId,
-        receiverId: data.receiverId, groupId: groupId || data.groupId,
+        receiverId: data.receiverId, groupId: data.groupId,
         message: data.message || "", type: data.type || "text",
         fileUrl: data.fileUrl, fileName: data.fileName, fileSize: data.fileSize,
         replyTo: data.replyTo, reactions: data.reactions || [],
@@ -116,12 +109,24 @@ export default function ChatPage() {
         createdAt: data.createdAt || new Date().toISOString(),
         updatedAt: data.createdAt || new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, msg]);
+      setMessages((p) => [...p, msg]);
+      // Update last message
+      const key = data.groupId || data.senderId;
+      setLastMessages((p) => ({ ...p, [key]: msg }));
+      // Increment unread if not currently viewing this chat
+      setSelectedTarget((current) => {
+        const currentId = current?.kind === "user" ? current.data._id : current?.kind === "group" ? current.data._id : null;
+        if (currentId !== key) {
+          setUnreadCounts((p) => ({ ...p, [key]: (p[key] || 0) + 1 }));
+        }
+        return current;
+      });
       socket.emit("message_read", { senderId: data.senderId, receiverId: myId });
     };
 
-    socket.on("receive_message", (data: SocketMessage) => { try { addMsg(data); } catch {} });
-    socket.on("receive_group_message", (data: SocketMessage) => { try { addMsg(data, data.groupId); } catch {} });
+    socket.on("receive_message", handleMsg);
+    socket.on("receive_group_message", handleMsg);
+
     socket.on("message_read", ({ receiverId }: any) => {
       setMessages((p) => p.map((m) => m.receiverId === receiverId && m.status !== "read" ? { ...m, status: "read" as const } : m));
     });
@@ -140,17 +145,20 @@ export default function ChatPage() {
         return { ...m, reactions };
       }));
     });
-    socket.on("message_edited", (d: any) => { setMessages((p) => p.map((m) => m._id === d.messageId ? { ...m, message: d.message, edited: true } : m)); });
-    socket.on("message_deleted", (d: any) => { setMessages((p) => p.map((m) => m._id === d.messageId ? { ...m, deleted: true, message: "This message was deleted" } : m)); });
+    socket.on("message_edited", (d: any) => {
+      setMessages((p) => p.map((m) => m._id === d.messageId ? { ...m, message: d.message, edited: true } : m));
+    });
+    socket.on("message_deleted", (d: any) => {
+      setMessages((p) => p.map((m) => m._id === d.messageId ? { ...m, deleted: true, message: "This message was deleted" } : m));
+    });
     socket.on("incoming_call", ({ callerId, callerName, callerImage, callType, offer }: any) => {
       setActiveCall({ type: callType || "video", user: { _id: callerId, name: callerName || "Unknown", image: callerImage || "", email: "", createdAt: "" }, isIncoming: true, offer });
     });
 
     return () => {
       try {
-        ["online_users","receive_message","receive_group_message","message_read",
-          "message_delivered","typing","stop_typing","message_reaction",
-          "message_edited","message_deleted","incoming_call"
+        ["online_users","receive_message","receive_group_message","message_read","message_delivered",
+          "typing","stop_typing","message_reaction","message_edited","message_deleted","incoming_call",
         ].forEach((e) => socket.off(e));
         disconnectSocket();
       } catch {}
@@ -169,52 +177,23 @@ export default function ChatPage() {
   useEffect(() => {
     if (!myId || !selectedTarget) return;
     setLoadingMessages(true);
+    const id = selectedTarget.kind === "user" ? selectedTarget.data._id : selectedTarget.data._id;
+    // Clear unread
+    setUnreadCounts((p) => ({ ...p, [id]: 0 }));
     const load = selectedTarget.kind === "user"
       ? fetchMessages(myId, selectedTarget.data._id)
       : fetchGroupMessages(selectedTarget.data._id);
-    load.then(setMessages).catch(console.error).finally(() => setLoadingMessages(false));
+    load.then((msgs) => {
+      setMessages(msgs);
+      if (msgs.length > 0) setLastMessages((p) => ({ ...p, [id]: msgs[msgs.length - 1] }));
+    }).catch(console.error).finally(() => setLoadingMessages(false));
   }, [myId, selectedTarget]);
-
-  // Search inside chat
-  useEffect(() => {
-    if (!searchQuery.trim()) { setSearchResults([]); return; }
-    const results = messages.filter((m) =>
-      m.message?.toLowerCase().includes(searchQuery.toLowerCase()) && !m.deleted
-    );
-    setSearchResults(results);
-  }, [searchQuery, messages]);
-
-  // Translate all messages
-  const handleTranslate = async () => {
-    setTranslating(true);
-    setShowTranslate(false);
-    try {
-      const toTranslate = messages.filter((m) => m.type === "text" && m.message && !m.deleted);
-      const translated = await Promise.all(
-        toTranslate.map(async (m) => {
-          const res = await fetch("/api/translate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: m.message, targetLang: selectedLang }),
-          });
-          const data = await res.json();
-          return { id: m._id, translated: data.translated };
-        })
-      );
-      setMessages((prev) => prev.map((m) => {
-        const t = translated.find((x) => x.id === m._id);
-        return t ? { ...m, message: t.translated } : m;
-      }));
-    } catch {}
-    setTranslating(false);
-  };
 
   const handleSend = useCallback(async (text: string, extras?: any) => {
     if (!myId || !selectedTarget) return;
     const socket = getSocket();
     const createdAt = new Date().toISOString();
     const optimisticId = `opt-${Date.now()}`;
-
     const optimistic: Message = {
       _id: optimisticId, senderId: myId,
       receiverId: selectedTarget.kind === "user" ? selectedTarget.data._id : undefined,
@@ -226,8 +205,8 @@ export default function ChatPage() {
       createdAt, updatedAt: createdAt,
     };
     setMessages((p) => [...p, optimistic]);
+    setLastMessages((p) => ({ ...p, [selectedTarget.data._id]: optimistic }));
     setReplyTo(null);
-
     try {
       if (selectedTarget.kind === "user") {
         socket.emit("send_message", { ...optimistic, messageId: optimisticId });
@@ -236,7 +215,7 @@ export default function ChatPage() {
         socket.emit("send_group_message", { ...optimistic, messageId: optimisticId, groupId: selectedTarget.data._id, senderName: myName, senderImage: myImage });
         await postGroupMessage(selectedTarget.data._id, myId, text, { type: extras?.type || "text", ...extras, replyTo: optimistic.replyTo });
       }
-    } catch {}
+    } catch (err) { console.error("Send failed:", err); }
   }, [myId, selectedTarget, replyTo, myName, myImage]);
 
   const handleReact = useCallback(async (messageId: string, emoji: string) => {
@@ -289,179 +268,186 @@ export default function ChatPage() {
     } catch {}
   }, [myId, selectedTarget, myName]);
 
-  if (!splashDone) {
-    return <SplashScreen onDone={() => setSplashDone(true)} />;
-  }
+  const handleTranslate = async () => {
+    setTranslating(true); setShowTranslate(false);
+    try {
+      const toTranslate = messages.filter((m) => m.type === "text" && m.message && !m.deleted);
+      const results = await Promise.all(toTranslate.map(async (m) => {
+        const res = await fetch("/api/translate", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: m.message, targetLang: selectedLang }),
+        });
+        const d = await res.json();
+        return { id: m._id, translated: d.translated || m.message };
+      }));
+      setMessages((p) => p.map((m) => {
+        const t = results.find((r) => r.id === m._id);
+        return t ? { ...m, message: t.translated } : m;
+      }));
+    } catch {} finally { setTranslating(false); }
+  };
+
+  const selectTarget = useCallback((t: ChatTarget) => {
+    setSelectedTarget(t); setReplyTo(null); setEditingMsg(null);
+    setShowSidebar(false); setShowSearch(false); setSearchQuery("");
+  }, []);
+
+  if (!splashDone) return <SplashScreen onDone={() => setSplashDone(true)} />;
 
   if (status === "loading" || !myId) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-surface)" }}>
-        <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "var(--brand)", borderTopColor: "transparent" }} />
+      <div className="h-screen flex items-center justify-center" style={{ background: "var(--bg-app)" }}>
+        <div className="w-10 h-10 rounded-full border-3 border-t-transparent animate-spin"
+          style={{ border: "3px solid var(--brand)", borderTopColor: "transparent" }} />
       </div>
     );
   }
 
-  const isTyping = !!typingInfo && (
-    selectedTarget?.kind === "user" ? typingInfo.senderId === selectedTarget.data._id : true
-  );
-  const typingLabel = selectedTarget?.kind === "group" && typingInfo?.senderName
-    ? `${typingInfo.senderName} is typing…` : "typing…";
-
-  const headerName = selectedTarget?.kind === "user" ? selectedTarget.data.name
-    : selectedTarget?.kind === "group" ? selectedTarget.data.name : "";
-  const headerImage = selectedTarget?.kind === "user" ? selectedTarget.data.image
-    : selectedTarget?.kind === "group" ? selectedTarget.data.avatar : "";
   const isOnline = selectedTarget?.kind === "user" ? onlineUsers.includes(selectedTarget.data._id) : false;
+  const isTyping = !!typingInfo && (selectedTarget?.kind === "user" ? typingInfo.senderId === selectedTarget.data._id : true);
+  const typingLabel = selectedTarget?.kind === "group" && typingInfo?.senderName ? `${typingInfo.senderName} is typing…` : "typing…";
+  const headerName = selectedTarget?.kind === "user" ? selectedTarget.data.name : selectedTarget?.kind === "group" ? selectedTarget.data.name : "";
+  const headerImage = selectedTarget?.kind === "user" ? selectedTarget.data.image : selectedTarget?.kind === "group" ? selectedTarget.data.avatar : "";
   const lastSeen = selectedTarget?.kind === "user" ? lastSeenMap[selectedTarget.data._id] : undefined;
-  const headerSub = selectedTarget?.kind === "group"
+  const subText = selectedTarget?.kind === "group"
     ? `${selectedTarget.data.members.length} members`
-    : isTyping ? typingLabel
-    : isOnline ? "Online"
+    : isTyping ? "typing…"
+    : isOnline ? "online"
     : formatLastSeen(lastSeen);
 
   return (
-    <div className="h-screen flex overflow-hidden" style={{ background: "var(--bg-surface)" }}>
+    <div className="h-screen flex overflow-hidden" style={{ background: "var(--bg-app)" }}>
       {/* Sidebar */}
-      <div className={`flex-shrink-0 md:w-72 md:flex md:flex-col ${showSidebar ? "flex flex-col w-full absolute inset-0 z-20 md:relative md:z-auto" : "hidden md:flex md:flex-col"}`}>
+      <div className={`flex-shrink-0 ${showSidebar ? "flex w-full absolute inset-0 z-20 md:relative md:z-auto md:w-auto" : "hidden md:flex"}`}>
         <Sidebar
           currentUser={session!.user as any}
           users={users} groups={groups}
           selectedTarget={selectedTarget}
           onlineUsers={onlineUsers}
           lastSeenMap={lastSeenMap}
-          onSelectTarget={(t) => { setSelectedTarget(t); setReplyTo(null); setEditingMsg(null); setShowSidebar(false); setShowSearch(false); }}
+          lastMessages={lastMessages}
+          unreadCounts={unreadCounts}
+          onSelectTarget={selectTarget}
           onGroupCreated={(g) => setGroups((p) => [g, ...p])}
-          onCallUser={(user, type) => setActiveCall({ type, user, isIncoming: false })}
+          onCallUser={(u, t) => setActiveCall({ type: t, user: u, isIncoming: false })}
           onOpenAI={() => setShowAI(true)}
         />
       </div>
 
-      {/* Chat area */}
-      <div className={`flex-1 flex flex-col min-w-0 ${!showSidebar ? "flex" : "hidden md:flex"}`}>
+      {/* Chat panel */}
+      <div className={`flex-1 flex flex-col min-w-0 ${!showSidebar ? "flex" : "hidden md:flex"}`}
+        style={{ background: "var(--bg-app)" }}>
         {selectedTarget ? (
           <>
-            {/* ── Header ──────────────────────────────────────────────── */}
-            <div className="flex-shrink-0" style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--bg-border)" }}>
-              <div className="h-16 flex items-center gap-3 px-4">
-                {/* Back (mobile) */}
+            {/* ── WA-style Header ──────────────────────────────────── */}
+            <div className="flex flex-col flex-shrink-0" style={{ background: "var(--bg-header)" }}>
+              <div className="flex items-center gap-3 px-3 h-16">
+                {/* Back */}
                 <button onClick={() => { setShowSidebar(true); setSelectedTarget(null); setShowSearch(false); }}
-                  className="md:hidden flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl transition-all hover:scale-110"
+                  className="md:hidden w-9 h-9 flex items-center justify-center rounded-full transition-all hover:bg-white/10 flex-shrink-0"
                   style={{ color: "var(--text-secondary)" }}>
-                  <Icons.Back />
+                  <I.Back />
                 </button>
 
-                {/* Avatar */}
-                <div className="relative flex-shrink-0">
+                {/* Avatar — clickable for profile info */}
+                <button className="relative flex-shrink-0">
                   {headerImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={headerImage} alt={headerName} className="w-10 h-10 rounded-full object-cover"
-                      style={{ border: "2px solid var(--bg-border)" }} />
+                    <img src={headerImage} alt="" className="w-10 h-10 rounded-full object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white"
-                      style={{ background: "linear-gradient(135deg, var(--brand), var(--brand-dark))" }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-lg"
+                      style={{ background: "var(--brand)" }}>
                       {selectedTarget.kind === "group" ? "G" : headerName[0]}
                     </div>
                   )}
-                  {selectedTarget.kind === "user" && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
-                      style={{ background: isOnline ? "var(--brand)" : "var(--text-muted)", borderColor: "var(--bg-card)" }} />
+                  {selectedTarget.kind === "user" && isOnline && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2"
+                      style={{ background: "var(--brand-light)", borderColor: "var(--bg-header)" }} />
                   )}
-                </div>
+                </button>
 
                 {/* Name + status */}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold truncate" style={{ color: "var(--text-primary)", fontSize: 15 }}>{headerName}</p>
-                  <p className="text-xs truncate" style={{ color: isTyping ? "var(--brand)" : "var(--text-muted)" }}>{headerSub}</p>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => {}}>
+                  <p className="font-semibold truncate leading-tight" style={{ color: "var(--text-primary)", fontSize: 16 }}>
+                    {headerName}
+                  </p>
+                  <p className="text-xs truncate leading-tight" style={{ color: isTyping ? "var(--brand)" : "var(--text-muted)" }}>
+                    {subText}
+                  </p>
                 </div>
 
-                {/* Header actions */}
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {/* Search in chat */}
-                  <button onClick={() => { setShowSearch(!showSearch); setSearchQuery(""); }}
-                    className="w-9 h-9 flex items-center justify-center rounded-xl transition-all hover:scale-110"
-                    style={{ color: showSearch ? "var(--brand)" : "var(--text-muted)", background: showSearch ? "var(--brand-glow)" : "transparent" }}>
-                    <Icons.Search />
-                  </button>
-
-                  {/* Translate */}
-                  {selectedTarget.kind === "user" && (
-                    <button onClick={() => setShowTranslate(!showTranslate)}
-                      className="w-9 h-9 flex items-center justify-center rounded-xl transition-all hover:scale-110"
-                      style={{ color: "var(--text-muted)" }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = "var(--brand)"}
-                      onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-muted)"}>
-                      <Icons.Translate />
-                    </button>
-                  )}
-
-                  {/* Call buttons (1-to-1 only) */}
+                {/* Header action buttons */}
+                <div className="flex items-center gap-0.5 flex-shrink-0">
                   {selectedTarget.kind === "user" && (
                     <>
-                      <button onClick={() => setActiveCall({ type: "voice", user: selectedTarget.data, isIncoming: false })}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl transition-all hover:scale-110"
-                        style={{ color: "var(--text-muted)" }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = "var(--brand)"}
-                        onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-muted)"}>
-                        <Icons.Phone />
-                      </button>
                       <button onClick={() => setActiveCall({ type: "video", user: selectedTarget.data, isIncoming: false })}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl transition-all hover:scale-110"
-                        style={{ color: "var(--text-muted)" }}
-                        onMouseEnter={(e) => e.currentTarget.style.color = "#60a5fa"}
-                        onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-muted)"}>
-                        <Icons.Video />
+                        className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+                        style={{ color: "var(--text-secondary)" }}>
+                        <I.Video />
+                      </button>
+                      <button onClick={() => setActiveCall({ type: "voice", user: selectedTarget.data, isIncoming: false })}
+                        className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+                        style={{ color: "var(--text-secondary)" }}>
+                        <I.Phone />
                       </button>
                     </>
                   )}
+                  <button onClick={() => { setShowSearch(!showSearch); setSearchQuery(""); }}
+                    className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+                    style={{ color: showSearch ? "var(--brand)" : "var(--text-secondary)" }}>
+                    <I.Search />
+                  </button>
+                  {/* Translate + menu */}
+                  <div className="relative">
+                    <button onClick={() => setShowTranslate(!showTranslate)}
+                      className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+                      style={{ color: "var(--text-secondary)" }}>
+                      <I.Menu />
+                    </button>
+                    {showTranslate && (
+                      <div className="absolute top-12 right-0 z-50 rounded-xl shadow-2xl p-3 min-w-[200px] animate-scale-in"
+                        style={{ background: "var(--bg-header)", border: "1px solid var(--divider)" }}>
+                        <p className="text-xs font-semibold mb-2 px-1" style={{ color: "var(--text-muted)" }}>Translate chat to</p>
+                        {LANGUAGES.map((lang) => (
+                          <button key={lang} onClick={() => setSelectedLang(lang)}
+                            className="w-full text-left px-3 py-2 rounded-lg text-sm transition-all hover:bg-white/10"
+                            style={{ color: selectedLang === lang ? "var(--brand)" : "var(--text-primary)", fontWeight: selectedLang === lang ? 600 : 400 }}>
+                            {selectedLang === lang && "✓ "}{lang}
+                          </button>
+                        ))}
+                        <div className="border-t mt-2 pt-2" style={{ borderColor: "var(--divider)" }}>
+                          <button onClick={handleTranslate} disabled={translating}
+                            className="w-full py-2 rounded-lg text-sm font-semibold transition-all"
+                            style={{ background: "var(--brand)", color: "#fff" }}>
+                            {translating ? "Translating…" : `Translate to ${selectedLang}`}
+                          </button>
+                        </div>
+                        <button onClick={() => router.push("/search")}
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm mt-1 transition-all hover:bg-white/10"
+                          style={{ color: "var(--text-primary)" }}>
+                          Search in chat
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Search bar */}
               {showSearch && (
                 <div className="px-4 pb-3 animate-slide-up">
-                  <div className="flex items-center gap-2 rounded-xl px-3 py-2"
-                    style={{ background: "var(--bg-raised)", border: "1.5px solid var(--bg-border)" }}>
-                    <Icons.Search />
+                  <div className="wa-search">
+                    <I.Search />
                     <input autoFocus value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search in conversation…"
-                      className="flex-1 bg-transparent text-sm outline-none"
-                      style={{ color: "var(--text-primary)", caretColor: "var(--brand)" }} />
+                      placeholder="Search messages…" />
                     {searchQuery && (
-                      <span className="text-xs px-2 py-0.5 rounded-full"
-                        style={{ background: "var(--brand-glow)", color: "var(--brand)" }}>
-                        {searchResults.length} found
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ background: "rgba(0,168,132,0.2)", color: "var(--brand)" }}>
+                        {messages.filter((m) => m.message?.toLowerCase().includes(searchQuery.toLowerCase()) && !m.deleted).length} results
                       </span>
                     )}
-                    <button onClick={() => { setShowSearch(false); setSearchQuery(""); }} style={{ color: "var(--text-muted)" }}>
-                      <Icons.Close />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Translate picker */}
-              {showTranslate && (
-                <div className="px-4 pb-3 animate-slide-up">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Translate to:</span>
-                    {LANGUAGES.map((lang) => (
-                      <button key={lang.code} onClick={() => setSelectedLang(lang.code)}
-                        className="px-3 py-1 rounded-full text-xs font-medium transition-all"
-                        style={{
-                          background: selectedLang === lang.code ? "var(--brand)" : "var(--bg-raised)",
-                          color: selectedLang === lang.code ? "#fff" : "var(--text-secondary)",
-                          border: `1px solid ${selectedLang === lang.code ? "var(--brand)" : "var(--bg-border)"}`,
-                        }}>
-                        {lang.label}
-                      </button>
-                    ))}
-                    <button onClick={handleTranslate} disabled={translating}
-                      className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
-                      style={{ background: "linear-gradient(135deg, var(--brand), var(--brand-dark))", color: "#fff" }}>
-                      {translating ? "Translating…" : "Translate All"}
-                    </button>
-                    <button onClick={() => setShowTranslate(false)} style={{ color: "var(--text-muted)" }}>
-                      <Icons.Close />
+                    <button onClick={() => { setShowSearch(false); setSearchQuery(""); }}>
+                      <I.Close />
                     </button>
                   </div>
                 </div>
@@ -471,8 +457,7 @@ export default function ChatPage() {
             <ChatWindow
               messages={messages} myId={myId} loading={loadingMessages}
               isTyping={isTyping} typingLabel={typingLabel}
-              partnerName={headerName}
-              searchQuery={searchQuery}
+              partnerName={headerName} searchQuery={searchQuery}
               onReact={handleReact} onReply={setReplyTo}
               onEdit={setEditingMsg} onDelete={handleDelete}
             />
@@ -485,24 +470,28 @@ export default function ChatPage() {
             />
           </>
         ) : (
-          <div className="flex-1 hidden md:flex flex-col items-center justify-center gap-6 text-center p-8">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-3xl flex items-center justify-center animate-glow"
-                style={{ background: "linear-gradient(135deg, var(--brand), var(--brand-dark))" }}>
-                <svg width="40" height="40" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-                </svg>
-              </div>
+          /* WhatsApp desktop empty state */
+          <div className="flex-1 hidden md:flex flex-col items-center justify-center gap-5"
+            style={{ background: "var(--bg-app)", borderLeft: "1px solid var(--divider)" }}>
+            <div className="w-28 h-28 rounded-full flex items-center justify-center"
+              style={{ background: "var(--bg-header)" }}>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--text-muted)" }}>
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+              </svg>
             </div>
-            <div>
-              <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Welcome to PulseChat</p>
-              <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>Select a conversation to start messaging</p>
+            <div className="text-center">
+              <h2 className="text-3xl font-light mb-3" style={{ color: "var(--text-primary)" }}>PulseChat</h2>
+              <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Send and receive messages without keeping your phone online.</p>
+              <p className="mt-1" style={{ color: "var(--text-muted)", fontSize: 14 }}>Use PulseChat on up to 4 linked devices.</p>
+            </div>
+            <div className="flex items-center gap-2 mt-4" style={{ color: "var(--text-muted)", fontSize: 13 }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              Your personal messages are end-to-end encrypted
             </div>
           </div>
         )}
       </div>
 
-      {/* Video/Voice call */}
       {activeCall && myId && (
         <VideoCallModal
           callType={activeCall.type} targetUser={activeCall.user}
@@ -512,7 +501,6 @@ export default function ChatPage() {
         />
       )}
 
-      {/* AI Chatbot */}
       {showAI && <AIChatbot onClose={() => setShowAI(false)} />}
     </div>
   );
