@@ -9,7 +9,7 @@ import CreateGroupModal from "./CreateGroupModal";
 
 // SVG Icons — clean, no emojis
 const I = {
-  Chats:     (a?:boolean) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>{a&&<circle cx="19" cy="4" r="3" fill="#25d366" stroke="none"/>}</svg>,
+  Chats:     () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
   Calls:     () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.82 19.5 19.5 0 015.09 12 19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>,
   Stories:   () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><circle cx="12" cy="8" r="7" strokeDasharray="3 2" opacity=".5"/><path d="M6 21v-1a6 6 0 0112 0v1"/></svg>,
   Groups:    () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
@@ -90,7 +90,7 @@ export default function Sidebar({
 
   // Left nav tabs
   const navTabs = [
-    { key: "chats",  icon: <I.Chats />,   label: "Chats" },
+    { key: "chats",  icon: I.Chats(),   label: "Chats" },
     { key: "calls",  icon: <I.Calls />,   label: "Calls" },
     { key: "stories",icon: <I.Stories />, label: "Status" },
     { key: "groups", icon: <I.Groups />,  label: "Groups" },
@@ -319,7 +319,7 @@ export default function Sidebar({
           <div className="flex md:hidden items-center justify-around py-2 flex-shrink-0 safe-pb"
             style={{ background: "var(--bg-header)", borderTop: `1px solid var(--divider)` }}>
             {[
-              { label: "Chats", icon: <I.Chats />, action: () => setTab("chats"), active: tab === "chats" },
+              { label: "Chats", icon: I.Chats(), action: () => setTab("chats"), active: tab === "chats" },
               { label: "Status", icon: <I.Stories />, action: () => router.push("/stories"), active: false },
               { label: "Groups", icon: <I.Groups />, action: () => setTab("groups"), active: tab === "groups" },
               { label: "Settings", icon: <I.Settings />, action: () => router.push("/appearance"), active: false },
