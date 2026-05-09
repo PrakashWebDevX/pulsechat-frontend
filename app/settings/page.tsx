@@ -20,164 +20,374 @@ const I = {
   ChevronRight: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>,
   Moon:      () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>,
   Sun:       () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+  Check:     () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
 };
+
+type View = "main" | "privacy" | "language" | "storage" | "wallpaper";
+
+const LANGUAGES = [
+  "English", "Tamil", "Hindi", "Spanish", "French", "Arabic", "German", "Japanese", "Chinese", "Korean"
+];
+
+const WALLPAPERS = [
+  { name: "Default Dark", value: "dark" },
+  { name: "Default Light", value: "light" },
+  { name: "WhatsApp Pattern", value: "pattern" },
+  { name: "Solid Dark", value: "solid-dark" },
+  { name: "Gradient", value: "gradient" },
+];
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  
+  const [view, setView] = useState<View>("main");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  
+  const [lastSeenPrivacy, setLastSeenPrivacy] = useState<"everyone" | "contacts" | "nobody">("everyone");
+  const [profilePhotoPrivacy, setProfilePhotoPrivacy] = useState<"everyone" | "contacts" | "nobody">("everyone");
+  const [aboutPrivacy, setAboutPrivacy] = useState<"everyone" | "contacts" | "nobody">("everyone");
+  
+  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  const [selectedWallpaper, setSelectedWallpaper] = useState("dark");
 
   const user = session?.user as any;
 
-  const settingsSections = [
-    {
-      title: "Account",
-      items: [
-        { icon: <I.Profile />, label: "Profile", desc: "Name, photo, bio", action: () => router.push("/profile") },
-        { icon: <I.Lock />, label: "Privacy", desc: "Last seen, profile photo, about", action: () => {} },
-        { icon: <I.Globe />, label: "Language", desc: "English", action: () => {} },
-      ],
-    },
-    {
-      title: "Preferences",
-      items: [
-        { 
-          icon: theme === "dark" ? <I.Moon /> : <I.Sun />, 
-          label: "Theme", 
-          desc: theme === "dark" ? "Dark" : "Light", 
-          action: toggleTheme,
-          toggle: true,
-        },
-        { 
-          icon: <I.Bell />, 
-          label: "Notifications", 
-          desc: notificationsEnabled ? "On" : "Off", 
-          action: () => setNotificationsEnabled(!notificationsEnabled),
-          toggle: true,
-        },
-        { icon: <I.Palette />, label: "Chat Wallpaper", desc: "Customize background", action: () => router.push("/appearance") },
-      ],
-    },
-    {
-      title: "Data & Storage",
-      items: [
-        { icon: <I.Database />, label: "Storage Usage", desc: "Manage storage", action: () => {} },
-        { icon: <I.Database />, label: "Network Usage", desc: "View data usage", action: () => {} },
-      ],
-    },
-    {
-      title: "Help & About",
-      items: [
-        { icon: <I.Help />, label: "Help", desc: "Get support", action: () => {} },
-        { icon: <I.Info />, label: "About", desc: "PulseChat v1.0.0", action: () => {} },
-        { icon: <I.Heart />, label: "Tell a friend", desc: "Share PulseChat", action: () => {} },
-      ],
-    },
-  ];
+  // Main View
+  if (view === "main") {
+    return (
+      <div className="h-screen flex flex-col" style={{ background: "var(--bg-app)" }}>
+        <div className="flex items-center gap-4 px-4 h-16 flex-shrink-0"
+          style={{ background: "var(--bg-header)", borderBottom: "1px solid var(--divider)" }}>
+          <button onClick={() => router.push("/chat")}
+            className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+            style={{ color: "var(--text-secondary)" }}>
+            <I.Back />
+          </button>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Settings</h1>
+        </div>
 
-  return (
-    <div className="h-screen flex flex-col" style={{ background: "var(--bg-app)" }}>
-      {/* Header */}
-      <div className="flex items-center gap-4 px-4 h-16 flex-shrink-0"
-        style={{ background: "var(--bg-header)", borderBottom: "1px solid var(--divider)" }}>
-        <button onClick={() => router.push("/chat")}
-          className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
-          style={{ color: "var(--text-secondary)" }}>
-          <I.Back />
-        </button>
-        <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Settings</h1>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        {/* User Profile Card */}
-        <button onClick={() => router.push("/profile")}
-          className="w-full flex items-center gap-4 px-6 py-5 transition-all hover:bg-white/5"
-          style={{ borderBottom: "1px solid var(--divider)" }}>
-          {user?.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.image} alt="" className="w-16 h-16 rounded-full object-cover" />
-          ) : (
-            <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
-              style={{ background: "var(--brand)" }}>
-              {user?.name?.[0]}
+        <div className="flex-1 overflow-y-auto">
+          <button onClick={() => router.push("/profile")}
+            className="w-full flex items-center gap-4 px-6 py-5 transition-all hover:bg-white/5"
+            style={{ borderBottom: "1px solid var(--divider)" }}>
+            {user?.image ? (
+              <img src={user.image} alt="" className="w-16 h-16 rounded-full object-cover" />
+            ) : (
+              <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
+                style={{ background: "var(--brand)" }}>
+                {user?.name?.[0]}
+              </div>
+            )}
+            <div className="flex-1 text-left min-w-0">
+              <p className="font-semibold text-lg truncate" style={{ color: "var(--text-primary)" }}>{user?.name}</p>
+              <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>{user?.email}</p>
             </div>
-          )}
-          <div className="flex-1 text-left min-w-0">
-            <p className="font-semibold text-lg truncate" style={{ color: "var(--text-primary)" }}>
-              {user?.name}
-            </p>
-            <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>
-              {user?.email}
-            </p>
-          </div>
-          <I.ChevronRight />
-        </button>
+            <I.ChevronRight />
+          </button>
 
-        {/* Settings Sections */}
-        {settingsSections.map((section, idx) => (
-          <div key={idx} className="mt-6">
-            <p className="px-6 py-2 text-xs font-semibold uppercase tracking-wider"
-              style={{ color: "var(--text-muted)" }}>
-              {section.title}
-            </p>
+          <div className="mt-6">
+            <p className="px-6 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Account</p>
             <div style={{ background: "var(--bg-sidebar)" }}>
-              {section.items.map((item, i) => (
-                <button key={i} onClick={item.action}
-                  className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5"
-                  style={{ borderBottom: i < section.items.length - 1 ? "1px solid var(--divider)" : "none" }}>
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
-                    {item.icon}
-                  </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <p className="font-medium" style={{ color: "var(--text-primary)" }}>{item.label}</p>
-                    <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>{item.desc}</p>
-                  </div>
-                  {item.toggle ? (
-                    <div className="w-12 h-7 rounded-full transition-all flex-shrink-0"
-                      style={{ 
-                        background: (item.label === "Theme" && theme === "dark") || 
-                                   (item.label === "Notifications" && notificationsEnabled)
-                          ? "var(--brand)" : "var(--bg-input)",
-                      }}>
-                      <div className="w-5 h-5 rounded-full bg-white mt-1 transition-all"
-                        style={{ 
-                          marginLeft: (item.label === "Theme" && theme === "dark") || 
-                                     (item.label === "Notifications" && notificationsEnabled)
-                            ? "26px" : "4px",
-                        }} />
-                    </div>
-                  ) : (
-                    <I.ChevronRight />
-                  )}
-                </button>
-              ))}
+              <button onClick={() => router.push("/profile")}
+                className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5"
+                style={{ borderBottom: "1px solid var(--divider)" }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
+                  <I.Profile />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Profile</p>
+                  <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>Name, photo, bio</p>
+                </div>
+                <I.ChevronRight />
+              </button>
+              <button onClick={() => setView("privacy")}
+                className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5"
+                style={{ borderBottom: "1px solid var(--divider)" }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
+                  <I.Lock />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Privacy</p>
+                  <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>Control your privacy</p>
+                </div>
+                <I.ChevronRight />
+              </button>
+              <button onClick={() => setView("language")}
+                className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
+                  <I.Globe />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Language</p>
+                  <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>{selectedLanguage}</p>
+                </div>
+                <I.ChevronRight />
+              </button>
             </div>
           </div>
-        ))}
 
-        {/* Logout */}
-        <div className="mt-8 px-6 pb-8">
-          <button onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-semibold transition-all active:scale-95"
-            style={{ background: "#ef4444", color: "#fff" }}>
-            <I.Logout />
-            Log Out
+          <div className="mt-6">
+            <p className="px-6 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Preferences</p>
+            <div style={{ background: "var(--bg-sidebar)" }}>
+              <button onClick={toggleTheme}
+                className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5"
+                style={{ borderBottom: "1px solid var(--divider)" }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
+                  {theme === "dark" ? <I.Moon /> : <I.Sun />}
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Theme</p>
+                  <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>{theme === "dark" ? "Dark" : "Light"}</p>
+                </div>
+                <div className="w-12 h-7 rounded-full transition-all flex-shrink-0 relative"
+                  style={{ background: theme === "dark" ? "var(--brand)" : "var(--bg-input)" }}>
+                  <div className="w-5 h-5 rounded-full bg-white absolute top-1 transition-all"
+                    style={{ left: theme === "dark" ? "26px" : "4px" }} />
+                </div>
+              </button>
+              <button onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5"
+                style={{ borderBottom: "1px solid var(--divider)" }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
+                  <I.Bell />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Notifications</p>
+                  <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>{notificationsEnabled ? "On" : "Off"}</p>
+                </div>
+                <div className="w-12 h-7 rounded-full transition-all flex-shrink-0 relative"
+                  style={{ background: notificationsEnabled ? "var(--brand)" : "var(--bg-input)" }}>
+                  <div className="w-5 h-5 rounded-full bg-white absolute top-1 transition-all"
+                    style={{ left: notificationsEnabled ? "26px" : "4px" }} />
+                </div>
+              </button>
+              <button onClick={() => setView("wallpaper")}
+                className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
+                  <I.Palette />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Chat Wallpaper</p>
+                  <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>Customize background</p>
+                </div>
+                <I.ChevronRight />
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <p className="px-6 py-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Data & Storage</p>
+            <div style={{ background: "var(--bg-sidebar)" }}>
+              <button onClick={() => setView("storage")}
+                className="w-full flex items-center gap-4 px-6 py-4 transition-all hover:bg-white/5">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: "var(--bg-input)", color: "var(--brand)" }}>
+                  <I.Database />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Storage Usage</p>
+                  <p className="text-sm truncate" style={{ color: "var(--text-muted)" }}>View storage</p>
+                </div>
+                <I.ChevronRight />
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-8 px-6 pb-8">
+            <button onClick={() => signOut({ callbackUrl: "/login" })}
+              className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-semibold transition-all active:scale-95"
+              style={{ background: "#ef4444", color: "#fff" }}>
+              <I.Logout />
+              Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Privacy View
+  if (view === "privacy") {
+    return (
+      <div className="h-screen flex flex-col" style={{ background: "var(--bg-app)" }}>
+        <div className="flex items-center gap-4 px-4 h-16 flex-shrink-0"
+          style={{ background: "var(--bg-header)", borderBottom: "1px solid var(--divider)" }}>
+          <button onClick={() => setView("main")}
+            className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+            style={{ color: "var(--text-secondary)" }}>
+            <I.Back />
+          </button>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Privacy</h1>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Control who can see your information</p>
+
+          {[
+            { label: "Last seen", value: lastSeenPrivacy, set: setLastSeenPrivacy },
+            { label: "Profile photo", value: profilePhotoPrivacy, set: setProfilePhotoPrivacy },
+            { label: "About", value: aboutPrivacy, set: setAboutPrivacy },
+          ].map((opt, idx) => (
+            <div key={idx} className="mb-6">
+              <p className="font-medium mb-3" style={{ color: "var(--text-primary)" }}>{opt.label}</p>
+              <div className="space-y-2">
+                {(["everyone", "contacts", "nobody"] as const).map((choice) => (
+                  <button key={choice}
+                    onClick={() => opt.set(choice)}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all"
+                    style={{ 
+                      background: opt.value === choice ? "rgba(0,168,132,0.15)" : "var(--bg-input)",
+                      border: opt.value === choice ? "2px solid var(--brand)" : "2px solid transparent",
+                    }}>
+                    <span style={{ color: "var(--text-primary)", textTransform: "capitalize", fontWeight: opt.value === choice ? 600 : 400 }}>{choice}</span>
+                    {opt.value === choice && <div style={{ color: "var(--brand)" }}><I.Check /></div>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Language View
+  if (view === "language") {
+    return (
+      <div className="h-screen flex flex-col" style={{ background: "var(--bg-app)" }}>
+        <div className="flex items-center gap-4 px-4 h-16 flex-shrink-0"
+          style={{ background: "var(--bg-header)", borderBottom: "1px solid var(--divider)" }}>
+          <button onClick={() => setView("main")}
+            className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+            style={{ color: "var(--text-secondary)" }}>
+            <I.Back />
+          </button>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Language</h1>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          {LANGUAGES.map((lang) => (
+            <button key={lang}
+              onClick={() => setSelectedLanguage(lang)}
+              className="w-full flex items-center justify-between px-4 py-4 rounded-xl mb-2 transition-all"
+              style={{ 
+                background: selectedLanguage === lang ? "rgba(0,168,132,0.15)" : "var(--bg-input)",
+                border: selectedLanguage === lang ? "2px solid var(--brand)" : "2px solid transparent",
+              }}>
+              <span style={{ color: "var(--text-primary)", fontWeight: selectedLanguage === lang ? 600 : 400 }}>{lang}</span>
+              {selectedLanguage === lang && <div style={{ color: "var(--brand)" }}><I.Check /></div>}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Wallpaper View
+  if (view === "wallpaper") {
+    return (
+      <div className="h-screen flex flex-col" style={{ background: "var(--bg-app)" }}>
+        <div className="flex items-center gap-4 px-4 h-16 flex-shrink-0"
+          style={{ background: "var(--bg-header)", borderBottom: "1px solid var(--divider)" }}>
+          <button onClick={() => setView("main")}
+            className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+            style={{ color: "var(--text-secondary)" }}>
+            <I.Back />
+          </button>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Chat Wallpaper</h1>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="grid grid-cols-2 gap-4">
+            {WALLPAPERS.map((wp) => (
+              <button key={wp.value}
+                onClick={() => setSelectedWallpaper(wp.value)}
+                className="aspect-square rounded-2xl overflow-hidden relative transition-all"
+                style={{ 
+                  border: selectedWallpaper === wp.value ? "3px solid var(--brand)" : "3px solid transparent",
+                }}>
+                <div className={`w-full h-full ${
+                  wp.value === "dark" ? "bg-gray-900" :
+                  wp.value === "light" ? "bg-gray-100" :
+                  wp.value === "pattern" ? "chat-bg-dark" :
+                  wp.value === "solid-dark" ? "bg-black" :
+                  "bg-gradient-to-br from-purple-500 to-pink-500"
+                }`} />
+                {selectedWallpaper === wp.value && (
+                  <div className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center"
+                    style={{ background: "var(--brand)", color: "#fff" }}>
+                    <I.Check />
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 px-3 py-2 text-xs font-medium"
+                  style={{ background: "rgba(0,0,0,0.7)", color: "#fff" }}>
+                  {wp.name}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Storage View
+  if (view === "storage") {
+    return (
+      <div className="h-screen flex flex-col" style={{ background: "var(--bg-app)" }}>
+        <div className="flex items-center gap-4 px-4 h-16 flex-shrink-0"
+          style={{ background: "var(--bg-header)", borderBottom: "1px solid var(--divider)" }}>
+          <button onClick={() => setView("main")}
+            className="w-10 h-10 flex items-center justify-center rounded-full transition-all hover:bg-white/10"
+            style={{ color: "var(--text-secondary)" }}>
+            <I.Back />
+          </button>
+          <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Storage Usage</h1>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="text-center mb-8">
+            <div className="text-4xl font-bold mb-2" style={{ color: "var(--brand)" }}>42.8 MB</div>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Total storage used</p>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              { label: "Messages", size: "12.3 MB", percent: 30 },
+              { label: "Photos", size: "18.5 MB", percent: 45 },
+              { label: "Videos", size: "8.2 MB", percent: 20 },
+              { label: "Documents", size: "3.8 MB", percent: 5 },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="flex justify-between mb-2">
+                  <span style={{ color: "var(--text-primary)" }}>{item.label}</span>
+                  <span style={{ color: "var(--text-muted)" }}>{item.size}</span>
+                </div>
+                <div className="w-full h-2 rounded-full" style={{ background: "var(--bg-input)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${item.percent}%`, background: "var(--brand)" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button className="w-full mt-8 py-4 rounded-2xl font-semibold transition-all active:scale-95"
+            style={{ background: "var(--brand)", color: "#fff" }}>
+            Clear Cache
           </button>
         </div>
-
-        {/* Footer */}
-        <div className="text-center px-6 pb-8">
-          <p className="text-xs mb-1" style={{ color: "var(--text-muted)" }}>
-            PulseChat v1.0.0
-          </p>
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Made with ❤️ by Claude
-          </p>
-        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }
