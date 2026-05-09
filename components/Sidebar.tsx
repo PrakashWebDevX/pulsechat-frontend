@@ -2,12 +2,12 @@
 
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { User, Group, ChatTarget, Message } from "@/types";
 import { useTheme } from "@/lib/ThemeContext";
 import CreateGroupModal from "./CreateGroupModal";
 
-// SVG Icons — clean, no emojis
+// SVG Icons
 const I = {
   Chats:     () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
   Calls:     () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 0112 18.82 19.5 19.5 0 015.09 12 19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>,
@@ -16,15 +16,11 @@ const I = {
   Search:    () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
   NewChat:   () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
   Menu:      () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/></svg>,
-  Mic:       () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3zM19 10v2a7 7 0 01-14 0v-2"/></svg>,
-  Image:     () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>,
-  File:      () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
   Settings:  () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
-  Check2:    () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1.5 12.5L6 17l5.5-6M8 12l5.5 6L20 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-  Mute:      () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-2m14 0v2a7 7 0 01-.11 1.23M12 19v4M8 23h8"/></svg>,
-  Pin:       () => <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 6.4H21l-5.4 4 2.1 6.6L12 15.4l-5.7 3.6 2.1-6.6L3 8.4h6.6z"/></svg>,
   Moon:      () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>,
   Sun:       () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+  Logout:    () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,
+  Bot:       () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4M8 15h.01M16 15h.01M12 15h.01"/></svg>,
 };
 
 function timeAgo(iso?: string): string {
@@ -75,7 +71,6 @@ export default function Sidebar({
   const [tab, setTab] = useState<"chats"|"groups">("chats");
   const [search, setSearch] = useState("");
   const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const isDark = theme === "dark";
 
   const selectedId = selectedTarget?.kind === "user" ? selectedTarget.data._id
     : selectedTarget?.kind === "group" ? selectedTarget.data._id : null;
@@ -88,17 +83,8 @@ export default function Sidebar({
     g.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Left nav tabs
-  const navTabs = [
-    { key: "chats",  icon: I.Chats(),   label: "Chats" },
-    { key: "calls",  icon: <I.Calls />,   label: "Calls" },
-    { key: "stories",icon: <I.Stories />, label: "Status" },
-    { key: "groups", icon: <I.Groups />,  label: "Groups" },
-  ];
-
   return (
     <>
-      {/* ── Mobile layout: full screen sidebar ───────────────────────── */}
       <aside className="flex h-full w-full md:w-[360px] flex-shrink-0"
         style={{ background: "var(--bg-sidebar)", borderRight: `1px solid var(--divider)` }}>
 
@@ -117,37 +103,49 @@ export default function Sidebar({
             )}
           </button>
 
-          {navTabs.map((t) => (
-            <button key={t.key} onClick={() => { if (t.key === "groups") setTab("groups"); else setTab("chats"); }}
-              title={t.label}
-              className={`wa-nav-icon ${tab === t.key || (t.key === "chats" && tab === "chats") ? "active" : ""}`}>
-              {t.icon}
-            </button>
-          ))}
+          {/* Chats */}
+          <button onClick={() => setTab("chats")} title="Chats"
+            className={`wa-nav-icon ${tab === "chats" ? "active" : ""}`}>
+            <I.Chats />
+          </button>
+
+          {/* Calls */}
+          <button onClick={() => router.push("/calls")} title="Calls" className="wa-nav-icon">
+            <I.Calls />
+          </button>
+
+          {/* Stories */}
+          <button onClick={() => router.push("/stories")} title="Status" className="wa-nav-icon">
+            <I.Stories />
+          </button>
+
+          {/* Groups */}
+          <button onClick={() => setTab("groups")} title="Groups"
+            className={`wa-nav-icon ${tab === "groups" ? "active" : ""}`}>
+            <I.Groups />
+          </button>
 
           <div className="flex-1" />
 
-          {/* Theme toggle */}
-          <button onClick={toggleTheme} className="wa-nav-icon" title="Toggle theme">
-            {isDark ? <I.Sun /> : <I.Moon />}
+          {/* Theme */}
+          <button onClick={toggleTheme} className="wa-nav-icon" title="Theme">
+            {theme === "dark" ? <I.Sun /> : <I.Moon />}
           </button>
+
           {/* AI */}
-          <button onClick={onOpenAI} className="wa-nav-icon" title="AI Assistant">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/>
-              <path d="M12 7v4M8 15h.01M16 15h.01M12 15h.01"/>
-            </svg>
+          <button onClick={onOpenAI} className="wa-nav-icon" title="AI">
+            <I.Bot />
           </button>
+
           {/* Settings */}
-          <button onClick={() => router.push("/appearance")} className="wa-nav-icon" title="Settings">
+          <button onClick={() => router.push("/settings")} className="wa-nav-icon" title="Settings">
             <I.Settings />
           </button>
+
           {/* Logout */}
-          <button onClick={() => signOut({ callbackUrl: "/login" })} className="wa-nav-icon" title="Logout"
-            style={{ color: "#ef4444" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
-            </svg>
+          <button onClick={() => signOut({ callbackUrl: "/login" })}
+            className="wa-nav-icon" title="Logout" style={{ color: "#ef4444" }}>
+            <I.Logout />
           </button>
         </div>
 
@@ -171,7 +169,7 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Filter tabs (mobile: All / Unread / Favourites) */}
+          {/* Filter tabs */}
           <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0 overflow-x-auto"
             style={{ background: "var(--bg-header)", borderBottom: `1px solid var(--divider)` }}>
             {["All", "Unread", "Favourites", "Groups"].map((label, i) => (
@@ -226,7 +224,6 @@ export default function Sidebar({
                     onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.background = "var(--bg-item-hover)"; }}
                     onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
                   >
-                    {/* Avatar */}
                     <div className="relative flex-shrink-0">
                       {user.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -243,7 +240,6 @@ export default function Sidebar({
                       )}
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5">
                         <span className="font-semibold truncate text-[15px]" style={{ color: "var(--text-primary)" }}>
@@ -319,10 +315,10 @@ export default function Sidebar({
           <div className="flex md:hidden items-center justify-around py-2 flex-shrink-0 safe-pb"
             style={{ background: "var(--bg-header)", borderTop: `1px solid var(--divider)` }}>
             {[
-              { label: "Chats", icon: I.Chats(), action: () => setTab("chats"), active: tab === "chats" },
+              { label: "Chats", icon: <I.Chats />, action: () => setTab("chats"), active: tab === "chats" },
               { label: "Status", icon: <I.Stories />, action: () => router.push("/stories"), active: false },
               { label: "Groups", icon: <I.Groups />, action: () => setTab("groups"), active: tab === "groups" },
-              { label: "Settings", icon: <I.Settings />, action: () => router.push("/appearance"), active: false },
+              { label: "Settings", icon: <I.Settings />, action: () => router.push("/settings"), active: false },
             ].map((item) => (
               <button key={item.label} onClick={item.action}
                 className="flex flex-col items-center gap-1 px-4 py-1"
