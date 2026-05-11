@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-export default function SplashScreen({ onDone }: { onDone: () => void }) {
+interface Props {
+  onDone: () => void;
+}
+
+export default function SplashScreen({ onDone }: Props) {
   const [phase, setPhase] = useState<"enter" | "pulse" | "exit">("enter");
 
   useEffect(() => {
@@ -14,71 +18,117 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-500
-        ${phase === "exit" ? "opacity-0 scale-110" : "opacity-100 scale-100"}`}
-      style={{ background: "linear-gradient(135deg, #0a0f1a 0%, #0f1a0a 50%, #0a0f1a 100%)" }}
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
+      style={{
+        background: "linear-gradient(135deg, #0b141a 0%, #111b21 50%, #0b141a 100%)",
+        opacity: phase === "exit" ? 0 : 1,
+        transition: phase === "exit" ? "opacity 0.5s ease-out" : "opacity 0.4s ease-in",
+        pointerEvents: "none",
+      }}
     >
-      {/* Animated background rings */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[1,2,3].map((i) => (
-          <div key={i} className="absolute inset-0 flex items-center justify-center">
-            <div
-              className="rounded-full border border-green-500/10"
-              style={{
-                width: `${200 + i * 120}px`,
-                height: `${200 + i * 120}px`,
-                animation: `ping ${1.5 + i * 0.5}s cubic-bezier(0, 0, 0.2, 1) infinite`,
-                animationDelay: `${i * 0.3}s`,
-              }}
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* Logo */}
-      <div className={`relative z-10 flex flex-col items-center gap-6 transition-all duration-700
-        ${phase === "enter" ? "opacity-0 translate-y-8 scale-90" : "opacity-100 translate-y-0 scale-100"}`}>
-
-        {/* Icon */}
-        <div className="relative">
-          <div className="w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)", boxShadow: "0 0 60px rgba(34,197,94,0.4)" }}>
-            <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
-              <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          {/* Glow */}
-          <div className="absolute inset-0 rounded-3xl blur-xl opacity-60"
-            style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)" }} />
-        </div>
-
-        {/* App name */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight" style={{ color: "#fff" }}>
-            Pulse<span style={{ color: "#22c55e" }}>Chat</span>
-          </h1>
-          <p className="text-sm mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>
-            Connect. Communicate. Now.
-          </p>
-        </div>
-
-        {/* Loading bar */}
-        <div className="w-32 h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
-          <div className="h-full rounded-full"
-            style={{
-              background: "linear-gradient(90deg, #22c55e, #16a34a)",
-              animation: "loadBar 1.8s ease-in-out forwards",
-            }} />
-        </div>
-      </div>
-
       <style>{`
-        @keyframes loadBar {
-          from { width: 0%; }
-          to { width: 100%; }
+        @keyframes ping-slow {
+          0% { transform: scale(1); opacity: 0.5; }
+          100% { transform: scale(2.2); opacity: 0; }
         }
+        @keyframes ping-mid {
+          0% { transform: scale(1); opacity: 0.4; }
+          100% { transform: scale(1.7); opacity: 0; }
+        }
+        @keyframes logo-pop {
+          0%   { transform: scale(0.5); opacity: 0; }
+          60%  { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1);   opacity: 1; }
+        }
+        @keyframes bar-fill {
+          0%   { width: 0%; }
+          80%  { width: 90%; }
+          100% { width: 100%; }
+        }
+        @keyframes text-up {
+          0%   { opacity: 0; transform: translateY(12px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes dot-bounce {
+          0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+          40%            { transform: scale(1.2); opacity: 1; }
+        }
+        .splash-ring-1 {
+          animation: ping-slow 1.4s ease-out infinite;
+          animation-delay: 0.3s;
+        }
+        .splash-ring-2 {
+          animation: ping-mid 1.4s ease-out infinite;
+          animation-delay: 0.1s;
+        }
+        .splash-logo {
+          animation: logo-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        .splash-bar {
+          animation: bar-fill 2s ease-out forwards;
+        }
+        .splash-text {
+          animation: text-up 0.5s ease-out 0.4s both;
+        }
+        .splash-sub {
+          animation: text-up 0.5s ease-out 0.7s both;
+        }
+        .sdot { animation: dot-bounce 1.2s ease-in-out infinite; display:inline-block; }
+        .sdot:nth-child(2) { animation-delay: 0.15s; }
+        .sdot:nth-child(3) { animation-delay: 0.3s; }
       `}</style>
+
+      {/* Rings */}
+      <div className="relative flex items-center justify-center" style={{ width: 160, height: 160 }}>
+        <div className="splash-ring-1 absolute inset-0 rounded-full"
+          style={{ background: "rgba(0,168,132,0.15)" }} />
+        <div className="splash-ring-2 absolute rounded-full"
+          style={{ inset: 16, background: "rgba(0,168,132,0.2)" }} />
+
+        {/* Logo circle */}
+        <div className="splash-logo w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl"
+          style={{
+            background: "linear-gradient(135deg, #00a884, #008f72)",
+            boxShadow: "0 0 40px rgba(0,168,132,0.5), 0 20px 60px rgba(0,0,0,0.5)",
+          }}>
+          {/* Chat bubble SVG */}
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white"
+            strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+        </div>
+      </div>
+
+      {/* App name */}
+      <div className="splash-text mt-8 text-center">
+        <h1 className="text-3xl font-bold text-white tracking-wide">PulseChat</h1>
+      </div>
+
+      {/* Tagline */}
+      <div className="splash-sub mt-2 text-center">
+        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14 }}>
+          Connect instantly, anywhere
+        </p>
+      </div>
+
+      {/* Loading bar */}
+      <div className="mt-12 w-48 h-1 rounded-full overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.1)" }}>
+        <div className="splash-bar h-full rounded-full"
+          style={{ background: "linear-gradient(90deg, #00a884, #25d366)" }} />
+      </div>
+
+      {/* Dots */}
+      <div className="mt-4 flex gap-1.5">
+        <span className="sdot w-1.5 h-1.5 rounded-full" style={{ background: "var(--brand, #00a884)" }} />
+        <span className="sdot w-1.5 h-1.5 rounded-full" style={{ background: "var(--brand, #00a884)" }} />
+        <span className="sdot w-1.5 h-1.5 rounded-full" style={{ background: "var(--brand, #00a884)" }} />
+      </div>
+
+      {/* Bottom watermark */}
+      <div style={{ position: "absolute", bottom: 32, color: "rgba(255,255,255,0.2)", fontSize: 12 }}>
+        from PulseChat
+      </div>
     </div>
   );
 }
