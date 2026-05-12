@@ -43,21 +43,23 @@ export default function ChatWindow({
   searchQuery, onReact, onReply, onEdit, onDelete,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
+  const { theme, wallpaper } = useTheme();
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
+  // Build wallpaper class
+  const wallpaperClass = `wallpaper-${wallpaper}-${theme}`;
+
   if (loading) {
     return (
-      <div className={`flex-1 overflow-y-auto py-4 ${theme === "dark" ? "chat-bg-dark" : "chat-bg-light"}`}>
+      <div className={`flex-1 overflow-y-auto py-4 ${wallpaperClass}`}>
         {[...Array(8)].map((_, i) => <SkeletonMsg key={i} isMine={i % 3 === 0} />)}
       </div>
     );
   }
 
-  // Group by date
   const groups: { label: string; msgs: Message[] }[] = [];
   for (const msg of messages) {
     const label = formatDateLabel(msg.createdAt);
@@ -67,8 +69,7 @@ export default function ChatWindow({
   }
 
   return (
-    <div className={`flex-1 overflow-y-auto py-3 ${theme === "dark" ? "chat-bg-dark" : "chat-bg-light"}`}>
-      {/* Empty state */}
+    <div className={`flex-1 overflow-y-auto py-3 ${wallpaperClass}`}>
       {messages.length === 0 && !isTyping && (
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <div className="px-6 py-3 rounded-full text-sm"
@@ -84,7 +85,6 @@ export default function ChatWindow({
 
       {groups.map((group) => (
         <div key={group.label}>
-          {/* Date chip — WhatsApp style */}
           <div className="flex justify-center my-4">
             <span className="px-4 py-1 rounded-full text-xs font-medium shadow-sm"
               style={{ background: "var(--bg-header)", color: "var(--text-secondary)" }}>
@@ -106,26 +106,21 @@ export default function ChatWindow({
             const senderName = typeof msg.senderId === "object" ? (msg.senderId as any)?.name : undefined;
             const senderImage = typeof msg.senderId === "object" ? (msg.senderId as any)?.image : undefined;
 
-            // Highlight searched messages
             const isHighlighted = searchQuery &&
-              msg.message?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-              !msg.deleted;
+              msg.message?.toLowerCase().includes(searchQuery.toLowerCase()) && !msg.deleted;
 
             return (
               <div key={msg._id}
                 style={isHighlighted ? { background: "rgba(0,168,132,0.1)", borderRadius: 4 } : {}}>
-                {/* Group chat: show sender name/avatar */}
                 {!isMine && msg.groupId && !isGrouped && (
                   <div className="flex items-center gap-2 pl-4 mt-2 mb-0.5">
                     {senderImage
                       ? <img src={senderImage} alt="" className="w-5 h-5 rounded-full object-cover" />
                       : <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                          style={{ background: "var(--brand)" }}>{senderName?.[0] || "?"}</div>
-                    }
+                          style={{ background: "var(--brand)" }}>{senderName?.[0] || "?"}</div>}
                     <span className="text-xs font-semibold" style={{ color: "var(--brand)" }}>{senderName}</span>
                   </div>
                 )}
-
                 <MessageBubble
                   msg={msg} isMine={isMine} isGrouped={!!isGrouped} myId={myId}
                   onReact={onReact} onReply={onReply} onEdit={onEdit} onDelete={onDelete}
@@ -136,7 +131,6 @@ export default function ChatWindow({
         </div>
       ))}
 
-      {/* Typing indicator — WA style */}
       {isTyping && (
         <div className="flex items-end gap-2 px-4 mt-2 animate-fade-in">
           <div className="px-4 py-3 rounded-lg rounded-bl-none shadow-sm"

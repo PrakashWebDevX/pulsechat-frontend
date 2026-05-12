@@ -3,37 +3,58 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 type Theme = "dark" | "light";
+type Wallpaper = "default" | "pattern" | "gradient" | "solid-dark" | "solid-light" | "nature" | "abstract";
 
-const ThemeContext = createContext<{
+interface ThemeContextType {
   theme: Theme;
+  wallpaper: Wallpaper;
   toggleTheme: () => void;
-}>({ theme: "dark", toggleTheme: () => {} });
+  setTheme: (t: Theme) => void;
+  setWallpaper: (w: Wallpaper) => void;
+}
+
+const ThemeContext = createContext<ThemeContextType>({
+  theme: "dark",
+  wallpaper: "default",
+  toggleTheme: () => {},
+  setTheme: () => {},
+  setWallpaper: () => {},
+});
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("dark");
+  const [wallpaper, setWallpaperState] = useState<Wallpaper>("default");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("theme") as Theme | null;
-    if (saved) {
-      setTheme(saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const t = prefersDark ? "dark" : "light";
-      setTheme(t);
-      document.documentElement.setAttribute("data-theme", t);
-    }
+    // Load saved preferences
+    const savedTheme = localStorage.getItem("pulsechat-theme") as Theme | null;
+    const savedWallpaper = localStorage.getItem("pulsechat-wallpaper") as Wallpaper | null;
+    if (savedTheme) setThemeState(savedTheme);
+    if (savedWallpaper) setWallpaperState(savedWallpaper);
+    setMounted(true);
   }, []);
 
-  const toggleTheme = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    localStorage.setItem("theme", next);
-    document.documentElement.setAttribute("data-theme", next);
-  };
+  useEffect(() => {
+    if (!mounted) return;
+    // Apply theme to document
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("pulsechat-theme", theme);
+  }, [theme, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem("pulsechat-wallpaper", wallpaper);
+  }, [wallpaper, mounted]);
+
+  const toggleTheme = () => setThemeState((t) => t === "dark" ? "light" : "dark");
+  const setTheme = (t: Theme) => setThemeState(t);
+  const setWallpaper = (w: Wallpaper) => setWallpaperState(w);
+
+  if (!mounted) return null;
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, wallpaper, toggleTheme, setTheme, setWallpaper }}>
       {children}
     </ThemeContext.Provider>
   );
